@@ -19,9 +19,9 @@ public class TransactionsController {
         this.transactionsService = transactionsService;
     }
 
-    @PostMapping(path = "/add", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<HttpStatus> addNewTransaction(@RequestBody Transaction transaction) {
-        transactionsService.save(transaction);
-        return ResponseEntity.ok(HttpStatus.OK);
-    }
+//    @PostMapping(path = "/add", consumes = MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseEntity<HttpStatus> addNewTransaction(@RequestBody Transaction transaction) {
+//        transactionsService.save(transaction);
+//        return ResponseEntity.ok(HttpStatus.OK);
+//    }
 }
