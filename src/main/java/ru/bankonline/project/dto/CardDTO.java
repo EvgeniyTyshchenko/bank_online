@@ -24,7 +24,7 @@ public class CardDTO extends DTO {
     private BigDecimal balance;
     private Currency currency;
 
-    public static CardDTO convertCardsToDTO(Card card, ModelMapper modelMapper) {
+    public static CardDTO convertCardToDTO(Card card, ModelMapper modelMapper) {
         return modelMapper.map(card, CardDTO.class);
     }
 

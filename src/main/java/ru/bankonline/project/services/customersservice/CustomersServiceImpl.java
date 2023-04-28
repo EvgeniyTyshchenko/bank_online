@@ -1,6 +1,7 @@
 package ru.bankonline.project.services.customersservice;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.bankonline.project.entity.Card;
 import ru.bankonline.project.entity.Customer;
 import ru.bankonline.project.entity.SavingsAccount;
@@ -12,11 +13,10 @@ import ru.bankonline.project.repositories.CardsRepository;
 import ru.bankonline.project.repositories.CustomersRepository;
 import ru.bankonline.project.repositories.SavingsAccountsRepository;
 import ru.bankonline.project.repositories.TransactionsRepository;
-import ru.bankonline.project.utils.exceptions.CustomerBalanceNotZeroException;
-import ru.bankonline.project.utils.exceptions.CustomerBlockingException;
-import ru.bankonline.project.utils.exceptions.CustomerMissingFromDBException;
-import ru.bankonline.project.utils.exceptions.NotCreatedException;
+import ru.bankonline.project.services.MailSender;
+import ru.bankonline.project.utils.exceptions.*;
 
+import javax.mail.MessagingException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,30 +28,44 @@ public class CustomersServiceImpl implements CustomersService {
     private final TransactionsRepository transactionsRepository;
     private final CardsRepository cardsRepository;
     private final SavingsAccountsRepository savingsAccountsRepository;
+    private final MailSender mailSender;
 
-    public CustomersServiceImpl(CustomersRepository customersRepository, TransactionsRepository transactionsRepository, CardsRepository cardsRepository, SavingsAccountsRepository savingsAccountsRepository) {
+    public CustomersServiceImpl(CustomersRepository customersRepository, TransactionsRepository transactionsRepository,
+                                CardsRepository cardsRepository, SavingsAccountsRepository savingsAccountsRepository,
+                                MailSender mailSender) {
         this.customersRepository = customersRepository;
         this.transactionsRepository = transactionsRepository;
         this.cardsRepository = cardsRepository;
         this.savingsAccountsRepository = savingsAccountsRepository;
+        this.mailSender = mailSender;
     }
 
     @Override
-    public void addNewCustomer(Customer customer) {
+    public void addNewCustomer(Customer customer) throws MessagingException {
         isPassportExists(customer.getPassportSeries(), customer.getPassportNumber());
         enrichCustomer(customer);
         customersRepository.save(customer);
         transactionToRegisterNewCustomer(customer.getCustomerId());
+
+        String message = "Здравствуйте, " + customer.getFirstName() + " " + customer.getPatronymic() + "! \n"
+                + "Добро пожаловать в наш банк!";
+//        mailSender.sendEmail(customer.getContactDetails().getEmail(), "Регистрация в банке", message);
     }
 
     @Override
     public Customer customerSearchByPassportSeriesAndNumber(Integer passportSeries, Integer passportNumber) {
-        return getCustomerByPassportSeriesAndNumber(passportSeries, passportNumber);
+        if (passportSeries != null && passportNumber != null) {
+            Customer customer = customersRepository.findByPassportSeriesAndPassportNumber(passportSeries, passportNumber);
+            if (customer != null) {
+                return customer;
+            }
+        }
+        throw new CustomerMissingFromDBException("Клиент отсутсвует в базе!");
     }
 
     @Override
     public void deleteCustomer(Integer passportSeries, Integer passportNumber) {
-        Customer customer = getCustomerByPassportSeriesAndNumber(passportSeries, passportNumber);
+        Customer customer = customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
         checkIfTheCustomerIsBlockedOrDeleted(customer);
 
         List<Card> cards = getCardsByCustomerId(customer.getCustomerId());
@@ -73,8 +87,11 @@ public class CustomersServiceImpl implements CustomersService {
     }
 
     @Override
+    @Transactional
     public void updateCustomer(Integer passportSeries, Integer passportNumber, Customer customer) {
-        Customer existingCustomer = getCustomerByPassportSeriesAndNumber(passportSeries, passportNumber);
+        Customer existingCustomer = customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
+        existingCustomer.setPassportSeries(customer.getPassportSeries());
+        existingCustomer.setPassportNumber(customer.getPassportNumber());
         existingCustomer.setLastName(customer.getLastName());
         existingCustomer.setFirstName(customer.getFirstName());
         existingCustomer.setPatronymic(customer.getPatronymic());
@@ -82,6 +99,7 @@ public class CustomersServiceImpl implements CustomersService {
 
         existingCustomer.setUpdateDate(LocalDateTime.now());
         customersRepository.save(existingCustomer);
+        areThereDuplicatesOfPassportData(existingCustomer.getPassportSeries(), existingCustomer.getPassportNumber());
     }
 
     @Override
@@ -100,6 +118,13 @@ public class CustomersServiceImpl implements CustomersService {
             throw new CustomerMissingFromDBException("По номеру сберегательного счета: " + savingAccountNumber + " клиент не найден!");
         }
         return customer;
+    }
+
+    @Override
+    public void checkIfTheCustomerIsBlockedOrDeleted(Customer customer) {
+        if (customer.getStatus() == Status.BLOCKED || customer.getStatus() == Status.CLOSED) {
+            throw new CustomerBlockingException("Клиент заблокирован или удален!");
+        }
     }
 
     private boolean checkIfHasBalanceOnCard(List<Card> cards) {
@@ -142,12 +167,11 @@ public class CustomersServiceImpl implements CustomersService {
         customersRepository.save(customer);
     }
 
-    private List<Card> getCardsByCustomerId(Integer customerId) {
-        return cardsRepository.findByCustomerId(customerId);
-    }
-
-    private List<SavingsAccount> getSavingsAccountsByCustomerId(Integer customerId) {
-        return savingsAccountsRepository.findByCustomerId(customerId);
+    private void areThereDuplicatesOfPassportData(Integer passportSeries, Integer passportNumber) {
+        Integer duplicatesCount = customersRepository.findPassportDuplicates(passportSeries, passportNumber);
+        if (duplicatesCount > 1) {
+            throw new PassportDuplicateException("Паспорт с указанными серией и номером уже есть в базе.");
+        }
     }
 
     private void isPassportExists(Integer passportSeries, Integer passportNumber) {
@@ -157,14 +181,12 @@ public class CustomersServiceImpl implements CustomersService {
         }
     }
 
-    private Customer getCustomerByPassportSeriesAndNumber(Integer passportSeries, Integer passportNumber) {
-        if (passportSeries != null && passportNumber != null) {
-            Customer customer = customersRepository.findByPassportSeriesAndPassportNumber(passportSeries, passportNumber);
-            if (customer != null) {
-                return customer;
-            }
-        }
-        throw new CustomerMissingFromDBException("Клиент отсутсвует в базе!");
+    private List<Card> getCardsByCustomerId(Integer customerId) {
+        return cardsRepository.findByCustomerId(customerId);
+    }
+
+    private List<SavingsAccount> getSavingsAccountsByCustomerId(Integer customerId) {
+        return savingsAccountsRepository.findByCustomerId(customerId);
     }
 
     private void transactionToRegisterNewCustomer(Integer customerId) {
@@ -183,12 +205,5 @@ public class CustomersServiceImpl implements CustomersService {
         customer.setStatus(Status.ACTIVE);
         customer.setCreateDate(LocalDateTime.now());
         customer.setUpdateDate(LocalDateTime.now());
-    }
-
-    @Override
-    public void checkIfTheCustomerIsBlockedOrDeleted(Customer customer) {
-        if (customer.getStatus() == Status.BLOCKED || customer.getStatus() == Status.CLOSED) {
-            throw new CustomerBlockingException("Клиент заблокирован или удален!");
-        }
     }
 }

@@ -8,6 +8,9 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 import ru.bankonline.project.entity.Address;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -27,6 +30,16 @@ public class AddressDTO extends DTO {
 
     public static AddressDTO convertToAddressDTO(Address address, ModelMapper modelMapper) {
         return modelMapper.map(address, AddressDTO.class);
+    }
+
+    public static List<AddressDTO> convertListAddressesToDTO(List<Address> addresses, ModelMapper modelMapper) {
+        List<AddressDTO> addressDTOs = new ArrayList<>();
+        for (Address address : addresses) {
+            AddressDTO addressDTO = new AddressDTO();
+            modelMapper.map(address, addressDTO);
+            addressDTOs.add(addressDTO);
+        }
+        return addressDTOs;
     }
 
     @Override

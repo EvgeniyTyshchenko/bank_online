@@ -11,13 +11,13 @@ public enum TransactionType {
     CLOSECARD("Closing the card"),
     BLOCKINGCARD("Card blocking"),
     UNLOCKINGCARD("Unlocking the card"),
-
     INTRANSFER("Incoming transfer"),
     OUTTRANSFER("Outgoing transfer"),
     OPENACCOUNT("Opening an account"),
     CLOSEACCOUNT("Closing an account"),
     CHECKBALANCE("Checking balance"),
-    CHECKTRANSACTIONLIST("Checking the list of transactions");
+    CHECKTRANSACTIONLIST("general requestgeneral request"),
+    CAPITALIZATION("Capitalization");
 
     private final String description;
 

@@ -9,6 +9,6 @@ import java.util.List;
 @Repository
 public interface TransactionsRepository extends JpaRepository<Transaction, Integer> {
 
-//    List<Transaction> findBy()
+    List<Transaction> findAllByCustomerId(Integer customerId);
 
 }

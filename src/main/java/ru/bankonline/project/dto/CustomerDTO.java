@@ -3,6 +3,7 @@ package ru.bankonline.project.dto;
 import lombok.*;
 import org.modelmapper.ModelMapper;
 import ru.bankonline.project.entity.Customer;
+import ru.bankonline.project.entity.enums.Status;
 
 import java.util.List;
 
@@ -20,6 +21,7 @@ public class CustomerDTO extends DTO {
     private String birthday;
     private AddressDTO addressDTO;
     private ContactDTO contactDTO;
+    private Status status;
 
     private List<CardDTO> cardDTO;
 
@@ -48,7 +50,7 @@ public class CustomerDTO extends DTO {
         return new CustomerDTO(customer.getPassportSeries(), customer.getPassportNumber(),
                 customer.getLastName(), customer.getFirstName(), customer.getPatronymic(),
                 customer.getBirthday(), AddressDTO.convertToAddressDTO(customer.getAddress(), modelMapper),
-                ContactDTO.convertToContactDTO(customer.getContactDetails(), modelMapper),
+                ContactDTO.convertToContactDTO(customer.getContactDetails(), modelMapper), customer.getStatus(),
                 CardDTO.convertListCardsToDTO(customer.getCards(), modelMapper),
                 SavingsAccountDTO.convertSavingsAccountToDTO(customer.getSavingsAccounts(), modelMapper));
     }

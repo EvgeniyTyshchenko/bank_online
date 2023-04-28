@@ -16,7 +16,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Getter
 @Setter
-
 @Entity
 @Table(name = "savings_accounts")
 public class SavingsAccount {

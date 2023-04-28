@@ -8,6 +8,9 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 import ru.bankonline.project.entity.Contact;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -24,6 +27,16 @@ public class ContactDTO extends DTO {
 
     public static ContactDTO convertToContactDTO(Contact contact, ModelMapper modelMapper) {
         return modelMapper.map(contact, ContactDTO.class);
+    }
+
+    public static List<ContactDTO> convertListContactDetailsToDTO(List<Contact> contacts, ModelMapper modelMapper) {
+        List<ContactDTO> contactDTOs = new ArrayList<>();
+        for (Contact contact : contacts) {
+            ContactDTO contactDTO = new ContactDTO();
+            modelMapper.map(contact, contactDTO);
+            contactDTOs.add(contactDTO);
+        }
+        return contactDTOs;
     }
 
     @Override

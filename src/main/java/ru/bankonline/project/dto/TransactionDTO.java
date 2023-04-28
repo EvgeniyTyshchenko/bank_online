@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
 import ru.bankonline.project.entity.enums.Currency;
 import ru.bankonline.project.entity.enums.TransactionType;
 
@@ -22,6 +23,7 @@ public class TransactionDTO extends DTO {
     private Currency currency;
     private TransactionType transactionType;
     private Date dateTimeTransaction;
+
 
     @Override
     public String toString() {

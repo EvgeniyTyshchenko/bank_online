@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.bankonline.project.dto.CardDTO;
 import ru.bankonline.project.services.cardsservice.CardsService;
 
+import javax.mail.MessagingException;
 import java.math.BigDecimal;
 
 
@@ -24,14 +25,14 @@ public class CardsController {
 
     @PostMapping(path = "/series/{series}/number/{number}")
     public ResponseEntity<HttpStatus> addNewCardToTheCustomer(@PathVariable Integer series,
-                                                              @PathVariable Integer number) {
+                                                              @PathVariable Integer number) throws MessagingException {
         cardsService.openCardToTheCustomer(series, number);
         return ResponseEntity.ok(HttpStatus.OK);
     }
 
     @PatchMapping("/series/{series}/number/{number}/close/{cardNumber}")
     public ResponseEntity<String> deleteTheCardFromTheCustomer(@PathVariable Integer series, @PathVariable Integer number,
-                                                               @PathVariable String cardNumber) {
+                                                               @PathVariable String cardNumber) throws MessagingException {
         cardsService.closeCard(series, number, cardNumber);
         return ResponseEntity.ok("Карта с номером " + cardNumber + " успешно закрыта!");
     }
@@ -67,6 +68,6 @@ public class CardsController {
     @GetMapping("/details/{series}/{number}/{cardNumber}")
     public ResponseEntity<CardDTO> getCardDetails(@PathVariable Integer series, @PathVariable Integer number,
                                                   @PathVariable String cardNumber) {
-        return ResponseEntity.ok(CardDTO.convertCardsToDTO(cardsService.getCardDetails(series, number, cardNumber), modelMapper));
+        return ResponseEntity.ok(CardDTO.convertCardToDTO(cardsService.getCardDetails(series, number, cardNumber), modelMapper));
     }
 }

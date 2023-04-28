@@ -27,8 +27,8 @@ public class SavingsAccountsController {
     @PatchMapping("/series/{series}/number/{number}/close/{accountNumber}")
     public ResponseEntity<String> deleteTheSavingAccountFromTheCustomer(@PathVariable Integer series, @PathVariable Integer number,
                                                                         @PathVariable String accountNumber) {
-        savingsAccountsService.closeSavingAccount(series, number, accountNumber);
-        return ResponseEntity.ok("Сберегательный счет с номером " + accountNumber + " успешно закрыт!");
+        String result = savingsAccountsService.closeAccountAndWithdrawMoneyThroughCashier(series, number, accountNumber);
+        return ResponseEntity.ok(result + " Сберегательный счет с номером " + accountNumber + " успешно закрыт!");
     }
 
     @PatchMapping("/{series}/{number}/{accountNumber}/{amount}")
@@ -38,17 +38,25 @@ public class SavingsAccountsController {
         return ResponseEntity.ok("Успешно! Счет: " + accountNumber + " пополнен. Баланс: " + result);
     }
 
-    @PatchMapping("/{series}/{number}/{senderCardNumber}/{recipientAccountNumber}/{amount}")
+    @PatchMapping("/{series}/{number}/sender/{cardNumber}/recipient/{accountNumber}/{amount}")
     public ResponseEntity<String> transferFromCardToSavingsAccount(@PathVariable Integer series, @PathVariable Integer number,
-                                                                   @PathVariable String senderCardNumber,
-                                                                   @PathVariable String recipientAccountNumber, @PathVariable BigDecimal amount) {
-        savingsAccountsService.transferFromCardToSavingsAccount(series, number, senderCardNumber, recipientAccountNumber, amount);
-        return ResponseEntity.ok("Перевод с карты: " + senderCardNumber + " на сберегательный счет: " + recipientAccountNumber + " - выполнен!" );
+                                                                   @PathVariable String cardNumber,
+                                                                   @PathVariable String accountNumber, @PathVariable BigDecimal amount) {
+        savingsAccountsService.transferFromCardToSavingsAccount(series, number, cardNumber, accountNumber, amount);
+        return ResponseEntity.ok("Перевод с карты: " + cardNumber + " на сберегательный счет: " + accountNumber + " - выполнен!" );
     }
 
     @GetMapping("/series/{series}/number/{number}/checkBalance/{accountNumber}")
     public ResponseEntity<String> checkBalanceSavingsAccount(@PathVariable Integer series, @PathVariable Integer number,
                                                              @PathVariable String accountNumber) {
         return ResponseEntity.ok(savingsAccountsService.checkBalance(series, number, accountNumber));
+    }
+
+    @PatchMapping("/{series}/{number}/{senderAccountNumber}/{recipientAccountNumber}/{amount}")
+    public ResponseEntity<String> transferFromSavingsAccountToSavingsAccount(@PathVariable Integer series, @PathVariable Integer number,
+                                                                             @PathVariable String senderAccountNumber,
+                                                                             @PathVariable String recipientAccountNumber, @PathVariable BigDecimal amount) {
+        savingsAccountsService.transferFromSavingsAccountToSavingsAccount(series, number, senderAccountNumber, recipientAccountNumber, amount);
+        return ResponseEntity.ok("Перевод со счета: " + senderAccountNumber + " на счет: " + recipientAccountNumber + " - выполнен!" );
     }
 }

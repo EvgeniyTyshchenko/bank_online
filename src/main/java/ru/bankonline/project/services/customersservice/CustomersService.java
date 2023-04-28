@@ -2,10 +2,11 @@ package ru.bankonline.project.services.customersservice;
 
 import ru.bankonline.project.entity.Customer;
 
+import javax.mail.MessagingException;
 
 public interface CustomersService {
 
-    void addNewCustomer(Customer customer);
+    void addNewCustomer(Customer customer) throws MessagingException;
 
     Customer customerSearchByPassportSeriesAndNumber(Integer passportSeries, Integer passportNumber);
 

@@ -3,13 +3,14 @@ package ru.bankonline.project.services.cardsservice;
 import ru.bankonline.project.entity.Card;
 import ru.bankonline.project.entity.Customer;
 
+import javax.mail.MessagingException;
 import java.math.BigDecimal;
 
 public interface CardsService {
 
-    void openCardToTheCustomer(Integer passportSeries, Integer passportNumber);
+    void openCardToTheCustomer(Integer passportSeries, Integer passportNumber) throws MessagingException;
 
-    void closeCard(Integer passportSeries, Integer passportNumber, String cardNumber);
+    void closeCard(Integer passportSeries, Integer passportNumber, String cardNumber) throws MessagingException;
 
     void blockCard(Integer passportSeries, Integer passportNumber, String cardNumber);
 

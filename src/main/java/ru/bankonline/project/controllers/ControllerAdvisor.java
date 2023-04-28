@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import ru.bankonline.project.utils.exceptions.*;
 
+import javax.mail.MessagingException;
+
 
 @RestControllerAdvice
 public class ControllerAdvisor extends ResponseEntityExceptionHandler {
@@ -113,6 +115,42 @@ public class ControllerAdvisor extends ResponseEntityExceptionHandler {
     }
     @ExceptionHandler
     public ResponseEntity<ErrorResponse> handleException(CustomerBalanceNotZeroException e) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                e.getMessage(),
+                System.currentTimeMillis()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ErrorResponse> handleException(MessagingException e) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                e.getMessage(),
+                System.currentTimeMillis()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ErrorResponse> handleException(ViolationTermsDepositException e) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                e.getMessage(),
+                System.currentTimeMillis()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ErrorResponse> handleException(PassportDuplicateException e) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                e.getMessage(),
+                System.currentTimeMillis()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ErrorResponse> handleException(NotFoundInBaseException e) {
         ErrorResponse errorResponse = new ErrorResponse(
                 e.getMessage(),
                 System.currentTimeMillis()

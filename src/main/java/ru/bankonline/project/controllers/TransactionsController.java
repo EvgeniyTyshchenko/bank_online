@@ -1,11 +1,12 @@
 package ru.bankonline.project.controllers;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
+import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.bankonline.project.entity.Transaction;
 import ru.bankonline.project.services.transactionsservice.TransactionsService;
+
+import java.util.List;
 
 
 @RestController
@@ -14,14 +15,15 @@ import ru.bankonline.project.services.transactionsservice.TransactionsService;
 public class TransactionsController {
 
     private final TransactionsService transactionsService;
+    private final ModelMapper modelMapper;
 
-    public TransactionsController(TransactionsService transactionsService) {
+    public TransactionsController(TransactionsService transactionsService, ModelMapper modelMapper) {
         this.transactionsService = transactionsService;
+        this.modelMapper = modelMapper;
     }
 
-//    @PostMapping(path = "/add", consumes = MediaType.APPLICATION_JSON_VALUE)
-//    public ResponseEntity<HttpStatus> addNewTransaction(@RequestBody Transaction transaction) {
-//        transactionsService.save(transaction);
-//        return ResponseEntity.ok(HttpStatus.OK);
-//    }
+    @GetMapping("/series/{series}/number/{number}")
+    public ResponseEntity<List<Transaction>> getTransactionCustomer(@PathVariable Integer series, @PathVariable Integer number) {
+        return ResponseEntity.ok((transactionsService.getTransactionCustomer(series, number)));
+    }
 }

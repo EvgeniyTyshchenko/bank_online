@@ -15,4 +15,7 @@ public interface CustomersRepository extends JpaRepository<Customer, Integer> {
 
     @Query("SELECT c FROM Customer c JOIN c.savingsAccounts savingAccount WHERE savingAccount.accountNumber = :accountNumber")
     Customer findBySavingAccountNumber(String accountNumber);
+
+    @Query("SELECT COUNT(c) FROM Customer c WHERE c.passportSeries = :passportSeries AND c.passportNumber = :passportNumber")
+    Integer findPassportDuplicates(Integer passportSeries, Integer passportNumber);
 }

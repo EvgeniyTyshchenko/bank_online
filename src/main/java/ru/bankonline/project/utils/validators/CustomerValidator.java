@@ -1,5 +1,6 @@
 package ru.bankonline.project.utils.validators;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
@@ -34,9 +35,9 @@ public class CustomerValidator implements Validator {
             errors.rejectValue("passportNumber", "", "Номер паспорта не может быть null " +
                     "и должен соответствовать 6 символам!");
         }
-        if (customerDTO.getLastName() == null || customerDTO.getLastName().isEmpty()) {
-            errors.rejectValue("lastName", "", "Фамилия обязательна для заполнения!");
-        }
+//        if (customerDTO.getLastName() == null || StringUtils.isEmpty(customerDTO.getLastName())) {
+//            errors.rejectValue("lastName", "", "Фамилия обязательна для заполнения!");
+//        }
         if (customerDTO.getFirstName() == null || customerDTO.getFirstName().isEmpty()) {
             errors.rejectValue("firstName", "", "Имя обязательно для заполнения!");
         }

@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 public interface SavingsAccountsService {
     void openSavingAccountToTheCustomer(Integer passportSeries, Integer passportNumber);
 
-    void closeSavingAccount(Integer passportSeries, Integer passportNumber, String accountNumber);
+    String closeAccountAndWithdrawMoneyThroughCashier(Integer passportSeries, Integer passportNumber, String accountNumber);
 
     String addMoneyToTheAccountThroughTheCashier(Integer passportSeries, Integer passportNumber,
                                                  String accountNumber, BigDecimal amount);
@@ -17,6 +17,9 @@ public interface SavingsAccountsService {
                                           String senderCardNumber, String recipientSavingsAccountNumber, BigDecimal amount);
 
     String checkBalance(Integer passportSeries, Integer passportNumber, String savingsAccountNumber);
+
+    void transferFromSavingsAccountToSavingsAccount(Integer passportSeries, Integer passportNumber,
+                                                    String senderSavingsAccountNumber, String recipientSavingsAccountNumber, BigDecimal amount);
 
     void checkIfTheSavingAccountIsNotClosedOrBlocked(SavingsAccount savingsAccount);
 
