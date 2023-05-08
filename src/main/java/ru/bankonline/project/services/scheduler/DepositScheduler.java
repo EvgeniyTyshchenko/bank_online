@@ -1,10 +1,11 @@
 package ru.bankonline.project.services.scheduler;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.bankonline.project.entity.SavingsAccount;
 import ru.bankonline.project.entity.Transaction;
-import ru.bankonline.project.entity.enums.Currency;
-import ru.bankonline.project.entity.enums.TransactionType;
+import ru.bankonline.project.constants.Currency;
+import ru.bankonline.project.constants.TransactionType;
 import ru.bankonline.project.repositories.SavingsAccountsRepository;
 import ru.bankonline.project.repositories.TransactionsRepository;
 
@@ -14,6 +15,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Component
 public class DepositScheduler {
 
@@ -41,6 +43,8 @@ public class DepositScheduler {
                 account.setUpdateDate(LocalDateTime.now());
                 savingsAccountsRepository.save(account);
                 transactionInterestAccruals(account.getCustomerId(), account, amountAccruedInterest);
+                log.info("На номер сберегательного счета {} произведено начисление процентов в размере {} RUB",
+                        account.getAccountNumber(), amountAccruedInterest);
             }
         }
     }

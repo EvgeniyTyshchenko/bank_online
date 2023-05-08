@@ -3,6 +3,7 @@ package ru.bankonline.project.entity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.*;
 
@@ -11,6 +12,7 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Getter
 @Setter
+@ToString
 public class Contact {
 
     @Id
@@ -23,4 +25,9 @@ public class Contact {
 
     @Column(name = "email")
     private String email;
+
+    public Contact(String phoneNumber, String email) {
+        this.phoneNumber = phoneNumber;
+        this.email = email;
+    }
 }

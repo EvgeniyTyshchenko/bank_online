@@ -1,17 +1,20 @@
 package ru.bankonline.project.services.transactionsservice;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.bankonline.project.entity.Customer;
 import ru.bankonline.project.entity.Transaction;
-import ru.bankonline.project.entity.enums.Currency;
-import ru.bankonline.project.entity.enums.TransactionType;
+import ru.bankonline.project.constants.Currency;
+import ru.bankonline.project.constants.TransactionType;
 import ru.bankonline.project.repositories.TransactionsRepository;
 import ru.bankonline.project.services.customersservice.CustomersService;
+import ru.bankonline.project.utils.exceptions.NotFoundInBaseException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 public class TransactionsServiceImpl implements TransactionsService {
 
@@ -26,8 +29,14 @@ public class TransactionsServiceImpl implements TransactionsService {
     @Override
     public List<Transaction> getTransactionCustomer(Integer passportSeries, Integer passportNumber) {
         Customer customer = customersService.customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
+        List<Transaction> transactions = transactionsRepository.findAllByCustomerId(customer.getCustomerId());
+        if (transactions.isEmpty()) {
+            throw new NotFoundInBaseException("Список транзакций пуст.");
+        }
         transactionCheckingTheList(customer);
-        return transactionsRepository.findAllByCustomerId(customer.getCustomerId());
+        log.info("Запрос по серии {} и номеру {} паспорта, для получения всего списка транзакций " +
+                "- произведен.", passportSeries, passportNumber);
+        return transactions;
     }
 
     private void transactionCheckingTheList(Customer customer) {

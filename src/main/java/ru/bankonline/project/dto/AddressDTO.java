@@ -1,9 +1,6 @@
 package ru.bankonline.project.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 import ru.bankonline.project.entity.Address;
@@ -15,6 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @Getter
 @Setter
+@ToString
 @Component
 public class AddressDTO extends DTO {
 
@@ -40,16 +38,5 @@ public class AddressDTO extends DTO {
             addressDTOs.add(addressDTO);
         }
         return addressDTOs;
-    }
-
-    @Override
-    public String toString() {
-        return "AddressDTO{" +
-                "country='" + country + '\'' +
-                ", city='" + city + '\'' +
-                ", street='" + street + '\'' +
-                ", house='" + house + '\'' +
-                ", apartment=" + apartment +
-                '}';
     }
 }

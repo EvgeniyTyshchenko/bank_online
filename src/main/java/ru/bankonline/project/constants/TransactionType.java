@@ -1,4 +1,4 @@
-package ru.bankonline.project.entity.enums;
+package ru.bankonline.project.constants;
 
 import lombok.AllArgsConstructor;
 
@@ -16,7 +16,7 @@ public enum TransactionType {
     OPENACCOUNT("Opening an account"),
     CLOSEACCOUNT("Closing an account"),
     CHECKBALANCE("Checking balance"),
-    CHECKTRANSACTIONLIST("general requestgeneral request"),
+    CHECKTRANSACTIONLIST("General request"),
     CAPITALIZATION("Capitalization");
 
     private final String description;

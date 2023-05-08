@@ -1,5 +1,6 @@
 package ru.bankonline.project.services.contactsservice;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.bankonline.project.entity.Contact;
 import ru.bankonline.project.entity.Customer;
@@ -10,8 +11,8 @@ import ru.bankonline.project.utils.exceptions.NotFoundInBaseException;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
+@Slf4j
 @Service
 public class ContactsServiceImpl implements ContactsService {
 
@@ -27,8 +28,11 @@ public class ContactsServiceImpl implements ContactsService {
 
     @Override
     public List<Contact> getAllCustomerContactsDetails() {
-        Optional<List<Contact>> optionalContacts = Optional.of(contactsRepository.findByContacts());
-        return optionalContacts.orElseThrow(() -> new NotFoundInBaseException("Список контактов пуст."));
+        List<Contact> contacts = contactsRepository.findByContacts();
+        if (contacts.isEmpty()) {
+            throw new NotFoundInBaseException("Список контактов пуст.");
+        }
+        return contacts;
     }
 
     @Override
@@ -40,5 +44,6 @@ public class ContactsServiceImpl implements ContactsService {
 
         existingCustomer.setUpdateDate(LocalDateTime.now());
         customersRepository.save(existingCustomer);
+        log.info(existingCustomer.toString());
     }
 }

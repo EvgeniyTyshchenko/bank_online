@@ -4,16 +4,15 @@ import org.springframework.stereotype.Service;
 import ru.bankonline.project.entity.Card;
 import ru.bankonline.project.entity.Customer;
 import ru.bankonline.project.entity.Transaction;
-import ru.bankonline.project.entity.enums.Currency;
-import ru.bankonline.project.entity.enums.Status;
-import ru.bankonline.project.entity.enums.TransactionType;
+import ru.bankonline.project.constants.Currency;
+import ru.bankonline.project.constants.Status;
+import ru.bankonline.project.constants.TransactionType;
 import ru.bankonline.project.repositories.CardsRepository;
 import ru.bankonline.project.repositories.TransactionsRepository;
 import ru.bankonline.project.services.MailSender;
 import ru.bankonline.project.services.customersservice.CustomersService;
 import ru.bankonline.project.utils.exceptions.*;
 
-import javax.mail.MessagingException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -35,7 +34,7 @@ public class CardsServiceImpl implements CardsService {
     }
 
     @Override
-    public void openCardToTheCustomer(Integer passportSeries, Integer passportNumber) throws MessagingException {
+    public void openCardToTheCustomer(Integer passportSeries, Integer passportNumber) {
         Customer existingCustomer = customersService
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
         customersService.checkIfTheCustomerIsBlockedOrDeleted(existingCustomer);
@@ -44,8 +43,8 @@ public class CardsServiceImpl implements CardsService {
         String uniqueCVV = String.valueOf((int)(Math.random() * 900) + 100);
         String uniqueAccountNumber = UUID.randomUUID().toString().replaceAll("[^0-9]", "0").substring(0, 20);
 
-        Card card = new Card(existingCustomer.getCustomerId(), uniqueCardNumber, uniqueCVV, uniqueAccountNumber,
-                BigDecimal.valueOf(0), Currency.RUB, Status.ACTIVE, LocalDateTime.now(), LocalDateTime.now());
+        Card card = new Card(existingCustomer.getCustomerId(), uniqueCardNumber,
+                uniqueCVV, uniqueAccountNumber, BigDecimal.valueOf(0), Currency.RUB);
 
         cardsRepository.save(card);
         transactionToOpenCard(existingCustomer);
@@ -63,7 +62,7 @@ public class CardsServiceImpl implements CardsService {
     }
 
     @Override
-    public void closeCard(Integer passportSeries, Integer passportNumber, String cardNumber) throws MessagingException {
+    public void closeCard(Integer passportSeries, Integer passportNumber, String cardNumber) {
         Customer existingCustomer = customersService
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
         customersService.checkIfTheCustomerIsBlockedOrDeleted(existingCustomer);

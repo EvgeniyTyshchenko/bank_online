@@ -1,13 +1,10 @@
 package ru.bankonline.project.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.modelmapper.ModelMapper;
 
 import ru.bankonline.project.entity.SavingsAccount;
-import ru.bankonline.project.entity.enums.Currency;
+import ru.bankonline.project.constants.Currency;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -17,6 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @Getter
 @Setter
+@ToString
 public class SavingsAccountDTO extends DTO {
 
     private String accountNumber;
@@ -32,14 +30,5 @@ public class SavingsAccountDTO extends DTO {
             savingsAccountDTOs.add(savingsAccountDTO);
         }
         return savingsAccountDTOs;
-    }
-
-    @Override
-    public String toString() {
-        return "SavingsAccountDTO{" +
-                "accountNumber='" + accountNumber + '\'' +
-                ", balance=" + balance +
-                ", currency=" + currency +
-                '}';
     }
 }

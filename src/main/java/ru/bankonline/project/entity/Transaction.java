@@ -2,8 +2,8 @@ package ru.bankonline.project.entity;
 
 import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
-import ru.bankonline.project.entity.enums.Currency;
-import ru.bankonline.project.entity.enums.TransactionType;
+import ru.bankonline.project.constants.Currency;
+import ru.bankonline.project.constants.TransactionType;
 
 import javax.persistence.*;
 import java.math.BigDecimal;

@@ -23,6 +23,7 @@ public class SavingsAccountValidator implements Validator {
             errors.rejectValue("accountNumber", "", "Номер счета не может быть пустым " +
                     "и должен соответствовать 20 символам!");
         }
+
         if (savingsAccountDTO.getBalance().compareTo(BigDecimal.ZERO) < 0) {
             errors.rejectValue("balance", "", "Баланс не может быть отрицательным!");
         }

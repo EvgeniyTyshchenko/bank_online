@@ -1,4 +1,4 @@
-package ru.bankonline.project.entity.enums;
+package ru.bankonline.project.constants;
 
 public enum Status {
 

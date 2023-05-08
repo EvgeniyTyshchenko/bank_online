@@ -1,27 +1,17 @@
 package ru.bankonline.project.utils.validators;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import ru.bankonline.project.dto.CustomerDTO;
-import ru.bankonline.project.entity.Customer;
 
 @Component
 public class CustomerValidator implements Validator {
-    private final AddressValidator addressValidator;
-    private final ContactValidator contactValidator;
-
-    @Autowired
-    public CustomerValidator(AddressValidator addressValidator, ContactValidator contactValidator) {
-        this.addressValidator = addressValidator;
-        this.contactValidator = contactValidator;
-    }
 
     @Override
     public boolean supports(Class<?> clazz) {
-        return Customer.class.equals(clazz);
+        return CustomerDTO.class.equals(clazz);
     }
 
     @Override
@@ -31,24 +21,29 @@ public class CustomerValidator implements Validator {
             errors.rejectValue("passportSeries", "", "Серия паспорта не может быть null " +
                     "и должна соответствовать 4 символам!");
         }
-        if (customerDTO.getPassportSeries() == null || customerDTO.getPassportNumber().toString().length() != 6) {
+
+        if (customerDTO.getPassportNumber() == null || customerDTO.getPassportNumber().toString().length() != 6) {
             errors.rejectValue("passportNumber", "", "Номер паспорта не может быть null " +
                     "и должен соответствовать 6 символам!");
         }
-//        if (customerDTO.getLastName() == null || StringUtils.isEmpty(customerDTO.getLastName())) {
-//            errors.rejectValue("lastName", "", "Фамилия обязательна для заполнения!");
-//        }
-        if (customerDTO.getFirstName() == null || customerDTO.getFirstName().isEmpty()) {
+
+        if (customerDTO.getLastName() == null || StringUtils.isEmpty(customerDTO.getLastName())) {
+            errors.rejectValue("lastName", "", "Фамилия обязательна для заполнения!");
+        }
+
+        if (customerDTO.getFirstName() == null || StringUtils.isEmpty(customerDTO.getFirstName())) {
             errors.rejectValue("firstName", "", "Имя обязательно для заполнения!");
         }
-        if (customerDTO.getPatronymic() == null || customerDTO.getPatronymic().isEmpty()) {
+
+        if (customerDTO.getPatronymic() == null || StringUtils.isEmpty(customerDTO.getPatronymic())) {
             errors.rejectValue("patronymic", "", "Отчество обязательно для заполнения!");
         }
-        if (customerDTO.getPatronymic() == null || customerDTO.getBirthday().length() != 10) {
-            errors.rejectValue("birthday", "", "Дата дня рождения обязательна для заполнения! " +
+
+        if (customerDTO.getBirthday() == null || StringUtils.isEmpty(customerDTO.getBirthday())) {
+            errors.rejectValue("birthday", "", "Дата дня рождения обязательна для заполнения!");
+        } else if (!customerDTO.getBirthday().matches("^\\d{2}\\.\\d{2}\\.\\d{4}$")) {
+            errors.rejectValue("birthday", "", "Некорректный формат даты! " +
                     "Пример ввода: 01.01.2000");
         }
-        addressValidator.validate(customerDTO.getAddressDTO(), errors);
-        contactValidator.validate(customerDTO.getContactDTO(), errors);
     }
 }

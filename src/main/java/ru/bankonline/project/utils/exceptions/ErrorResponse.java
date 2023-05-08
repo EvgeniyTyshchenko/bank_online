@@ -37,14 +37,6 @@ public class ErrorResponse {
         }
     }
 
-//    public static void checkIfThereIsDataEntryError(BindingResult bindingResult, Validator validator, String cardNumber) {
-//        validator.validate(cardNumber, bindingResult);
-//        if (bindingResult.hasErrors()) {
-//            String errorMessage = getErrorMessage(bindingResult);
-//            throw new EnteringCardDataException(errorMessage);
-//        }
-//    }
-
     public static String getErrorMessage(BindingResult bindingResult) {
         List<String> errorMessages = new ArrayList<>();
         for (FieldError error : bindingResult.getFieldErrors()) {

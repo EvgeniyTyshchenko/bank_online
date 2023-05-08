@@ -45,7 +45,7 @@ public class MailConfig {
         properties.put("mail.smtp.ssl.trust", host);
         properties.setProperty("mail.transport.protocol", protocol);
         properties.setProperty("mail.debug", debug);
-// Для уведомления в логах
+        // Для уведомления в логах
 
         return mailSender;
     }

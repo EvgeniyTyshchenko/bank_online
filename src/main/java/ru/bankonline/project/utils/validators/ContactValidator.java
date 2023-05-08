@@ -4,14 +4,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import ru.bankonline.project.dto.ContactDTO;
-import ru.bankonline.project.entity.Contact;
 
 @Component
 public class ContactValidator implements Validator {
 
     @Override
     public boolean supports(Class<?> clazz) {
-        return Contact.class.equals(clazz);
+        return ContactDTO.class.equals(clazz);
     }
 
     @Override
@@ -20,7 +19,7 @@ public class ContactValidator implements Validator {
         if (contactDTO.getPhoneNumber() == null || contactDTO.getPhoneNumber().isEmpty()) {
             errors.rejectValue("phoneNumber", "",
                     "Номер телефона не может быть null или пустым!");
-        } else if (contactDTO.getPhoneNumber().matches("(\\+7|8)?\\d{10}")) {
+        } else if (!contactDTO.getPhoneNumber().matches("(\\+7|8)?\\d{10}")) {
             errors.rejectValue("phoneNumber", "",
                     "Некорректный формат номера телефона! " +
                             "Должно соответствовать формату: +79874563212 или 89786542321");

@@ -4,11 +4,12 @@ import lombok.*;
 
 import javax.persistence.*;
 
-@Entity
-@Table(name = "addresses")
 @NoArgsConstructor
 @Getter
 @Setter
+@ToString
+@Entity
+@Table(name = "addresses")
 public class Address {
 
     @Id
@@ -30,4 +31,12 @@ public class Address {
 
     @Column(name = "apartment")
     private Integer apartment;
+
+    public Address(String country, String city, String street, String house, Integer apartment) {
+        this.country = country;
+        this.city = city;
+        this.street = street;
+        this.house = house;
+        this.apartment = apartment;
+    }
 }

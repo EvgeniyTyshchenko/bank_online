@@ -2,8 +2,9 @@ package ru.bankonline.project.dto;
 
 import lombok.*;
 import org.modelmapper.ModelMapper;
+import org.springframework.stereotype.Component;
 import ru.bankonline.project.entity.Customer;
-import ru.bankonline.project.entity.enums.Status;
+import ru.bankonline.project.constants.Status;
 
 import java.util.List;
 
@@ -11,6 +12,8 @@ import java.util.List;
 @NoArgsConstructor
 @Getter
 @Setter
+
+@Component
 public class CustomerDTO extends DTO {
 
     private Integer passportSeries;

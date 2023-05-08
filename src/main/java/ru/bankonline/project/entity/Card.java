@@ -2,8 +2,8 @@ package ru.bankonline.project.entity;
 
 import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
-import ru.bankonline.project.entity.enums.Currency;
-import ru.bankonline.project.entity.enums.Status;
+import ru.bankonline.project.constants.Currency;
+import ru.bankonline.project.constants.Status;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -56,16 +56,16 @@ public class Card {
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
     private LocalDateTime updateDate;
 
-    public Card(Integer customerId, String cardNumber, String cvv, String accountNumber, BigDecimal balance,
-                Currency currency, Status status, LocalDateTime openingDate, LocalDateTime updateDate) {
+    public Card(Integer customerId, String cardNumber, String cvv,
+                String accountNumber, BigDecimal balance, Currency currency) {
         this.customerId = customerId;
         this.cardNumber = cardNumber;
         this.cvv = cvv;
         this.accountNumber = accountNumber;
         this.balance = balance;
         this.currency = currency;
-        this.status = status;
-        this.openingDate = openingDate;
-        this.updateDate = updateDate;
+        this.status = Status.ACTIVE;
+        this.openingDate = LocalDateTime.now();
+        this.updateDate = LocalDateTime.now();
     }
 }

@@ -23,16 +23,19 @@ public class CardValidator implements Validator {
             errors.rejectValue("cardNumber", "", "Номер карты не может быть пустым " +
                     "и должен соответствовать 16 символам!");
         }
-//        if (cardDTO.getCvv() == null || cardDTO.getCvv().length() != 3) {
-//            errors.rejectValue("cvv", "", "CVV не может быть пустым " +
-//                    "и должен соответствовать 3 символам!");
-//        }
-//        if (cardDTO.getAccountNumber() == null || cardDTO.getAccountNumber().length() != 20) {
-//            errors.rejectValue("accountNumber", "", "Номер счета не может быть пустым " +
-//                    "и должен соответствовать 20 символам!");
-//        }
-//        if (cardDTO.getBalance().compareTo(BigDecimal.ZERO) < 0) {
-//            errors.rejectValue("balance", "", "Баланс не может быть отрицательным!");
-//        }
+
+        if (cardDTO.getCvv() == null || cardDTO.getCvv().length() != 3) {
+            errors.rejectValue("cvv", "", "CVV не может быть пустым " +
+                    "и должен соответствовать 3 символам!");
+        }
+
+        if (cardDTO.getAccountNumber() == null || cardDTO.getAccountNumber().length() != 20) {
+            errors.rejectValue("accountNumber", "", "Номер счета не может быть пустым " +
+                    "и должен соответствовать 20 символам!");
+        }
+
+        if (cardDTO.getBalance().compareTo(BigDecimal.ZERO) < 0) {
+            errors.rejectValue("balance", "", "Баланс не может быть отрицательным!");
+        }
     }
 }

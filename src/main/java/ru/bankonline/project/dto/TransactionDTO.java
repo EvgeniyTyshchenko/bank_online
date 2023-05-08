@@ -1,12 +1,9 @@
 package ru.bankonline.project.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-import ru.bankonline.project.entity.enums.Currency;
-import ru.bankonline.project.entity.enums.TransactionType;
+import ru.bankonline.project.constants.Currency;
+import ru.bankonline.project.constants.TransactionType;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -15,6 +12,7 @@ import java.util.Date;
 @NoArgsConstructor
 @Getter
 @Setter
+@ToString
 public class TransactionDTO extends DTO {
 
     private String sendersAccountNumber;
@@ -23,17 +21,4 @@ public class TransactionDTO extends DTO {
     private Currency currency;
     private TransactionType transactionType;
     private Date dateTimeTransaction;
-
-
-    @Override
-    public String toString() {
-        return "TransactionDTO{" +
-                "sendersAccountNumber='" + sendersAccountNumber + '\'' +
-                ", recipientAccountNumber='" + recipientAccountNumber + '\'' +
-                ", amount=" + amount +
-                ", currency=" + currency +
-                ", transactionType=" + transactionType +
-                ", dateTimeTransaction=" + dateTimeTransaction +
-                '}';
-    }
 }

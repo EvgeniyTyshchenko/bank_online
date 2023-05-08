@@ -1,5 +1,6 @@
 package ru.bankonline.project.controllers;
 
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import java.util.List;
 
 import static ru.bankonline.project.utils.exceptions.ErrorResponse.checkIfThereErrorInTheUpdate;
 
+@Slf4j
 @RestController
 @RequestMapping("/addresses")
 public class AddressesController {
@@ -36,6 +38,7 @@ public class AddressesController {
     @PutMapping("/series/{series}/number/{number}")
     public ResponseEntity<HttpStatus> updateAddress(@PathVariable Integer series, @PathVariable Integer number,
                                                     @RequestBody AddressDTO addressDTO, BindingResult bindingResult) {
+        log.info("Обновление адреса в базе по серии {} и номеру {} паспорта", series, number);
         checkIfThereErrorInTheUpdate(bindingResult, addressValidator, addressDTO);
         addressesService.updateAddress(series, number, AddressDTO.convertToAddress(addressDTO, modelMapper));
         return ResponseEntity.ok(HttpStatus.OK);

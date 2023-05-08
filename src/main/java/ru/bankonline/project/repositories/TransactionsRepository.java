@@ -10,5 +10,4 @@ import java.util.List;
 public interface TransactionsRepository extends JpaRepository<Transaction, Integer> {
 
     List<Transaction> findAllByCustomerId(Integer customerId);
-
 }

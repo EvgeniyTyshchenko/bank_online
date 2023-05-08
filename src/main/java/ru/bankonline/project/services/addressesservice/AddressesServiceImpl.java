@@ -1,5 +1,6 @@
 package ru.bankonline.project.services.addressesservice;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.bankonline.project.entity.Address;
 import ru.bankonline.project.entity.Customer;
@@ -10,8 +11,8 @@ import ru.bankonline.project.utils.exceptions.NotFoundInBaseException;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
+@Slf4j
 @Service
 public class AddressesServiceImpl implements AddressesService {
 
@@ -19,7 +20,8 @@ public class AddressesServiceImpl implements AddressesService {
     private final AddressesRepository addressesRepository;
     private final CustomersService customersService;
 
-    public AddressesServiceImpl(CustomersRepository customersRepository, AddressesRepository addressesRepository, CustomersService customersService) {
+    public AddressesServiceImpl(CustomersRepository customersRepository,
+                                AddressesRepository addressesRepository, CustomersService customersService) {
         this.customersRepository = customersRepository;
         this.addressesRepository = addressesRepository;
         this.customersService = customersService;
@@ -27,13 +29,17 @@ public class AddressesServiceImpl implements AddressesService {
 
     @Override
     public List<Address> getAllCustomerAddresses() {
-        Optional<List<Address>> optionalAddresses = Optional.of(addressesRepository.findByAddresses());
-        return optionalAddresses.orElseThrow(() -> new NotFoundInBaseException("Список адресов пуст."));
+        List<Address> addresses = addressesRepository.findByAddresses();
+        if (addresses.isEmpty()) {
+            throw new NotFoundInBaseException("Список адресов пуст.");
+        }
+        return addresses;
     }
 
     @Override
     public void updateAddress(Integer passportSeries, Integer passportNumber, Address address) {
-        Customer existingCustomer = customersService.customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
+        Customer existingCustomer = customersService
+                .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
         customersService.checkIfTheCustomerIsBlockedOrDeleted(existingCustomer);
         existingCustomer.getAddress().setCountry(address.getCountry());
         existingCustomer.getAddress().setCity(address.getCity());
@@ -43,5 +49,6 @@ public class AddressesServiceImpl implements AddressesService {
 
         existingCustomer.setUpdateDate(LocalDateTime.now());
         customersRepository.save(existingCustomer);
+        log.info(existingCustomer.toString());
     }
 }

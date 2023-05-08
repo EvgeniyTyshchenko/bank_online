@@ -23,10 +23,12 @@ public class TransactionValidator implements Validator {
             errors.rejectValue("sendersAccountNumber", "", "Номер счета отправителя не может быть пустым " +
                     "и должен соответствовать 20 символам!");
         }
+
         if (transactionDTO.getRecipientAccountNumber() == null || transactionDTO.getRecipientAccountNumber().length() != 20) {
             errors.rejectValue("recipientAccountNumber", "", "Номер счета получателя не может быть пустым " +
                     "и должен соответствовать 20 символам!");
         }
+
         if (transactionDTO.getAmount().compareTo(BigDecimal.ZERO) < 0) {
             errors.rejectValue("amount", "", "Сумма не может быть отрицательной!");
         }

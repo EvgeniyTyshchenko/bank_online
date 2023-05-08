@@ -3,7 +3,7 @@ package ru.bankonline.project.entity;
 import lombok.*;
 
 import org.springframework.format.annotation.DateTimeFormat;
-import ru.bankonline.project.entity.enums.Status;
+import ru.bankonline.project.constants.Status;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -13,7 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 @Setter
-
+@ToString
 @Entity
 @Table(name = "customers")
 public class Customer {
@@ -81,24 +81,5 @@ public class Customer {
         this.birthday = birthday;
         this.address = address;
         this.contactDetails = contactDetails;
-    }
-
-    @Override
-    public String toString() {
-        return "Customer{" +
-                "customerId=" + customerId +
-                ", passportSeries=" + passportSeries +
-                ", passportNumber=" + passportNumber +
-                ", lastName='" + lastName + '\'' +
-                ", firstName='" + firstName + '\'' +
-                ", patronymic='" + patronymic + '\'' +
-                ", birthday='" + birthday + '\'' +
-                ", address=" + address +
-                ", contactDetails=" + contactDetails +
-                ", status=" + status +
-                ", createDate=" + createDate +
-                ", updateDate=" + updateDate +
-                ", cards=" + cards +
-                '}';
     }
 }

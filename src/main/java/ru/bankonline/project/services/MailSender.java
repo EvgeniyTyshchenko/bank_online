@@ -5,8 +5,6 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
-import javax.mail.MessagingException;
-
 @Service
 public class MailSender {
 
@@ -19,7 +17,7 @@ public class MailSender {
         this.mailSender = mailSender;
     }
 
-    public void sendEmail(String emailTo, String subject, String message) throws MessagingException {
+    public void sendEmail(String emailTo, String subject, String message) {
         SimpleMailMessage mailMessage = new SimpleMailMessage();
 
         mailMessage.setFrom(username);

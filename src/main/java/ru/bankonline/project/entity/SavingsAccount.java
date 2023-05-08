@@ -1,12 +1,9 @@
 package ru.bankonline.project.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
-import ru.bankonline.project.entity.enums.Currency;
-import ru.bankonline.project.entity.enums.Status;
+import ru.bankonline.project.constants.Currency;
+import ru.bankonline.project.constants.Status;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -16,6 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Getter
 @Setter
+@ToString
 @Entity
 @Table(name = "savings_accounts")
 public class SavingsAccount {
@@ -61,18 +59,5 @@ public class SavingsAccount {
         this.status = status;
         this.openingDate = openingDate;
         this.updateDate = updateDate;
-    }
-
-    @Override
-    public String toString() {
-        return "SavingsAccount{" +
-                "accountId=" + accountId +
-                ", customerId=" + customerId +
-                ", accountNumber='" + accountNumber + '\'' +
-                ", balance=" + balance +
-                ", currency=" + currency +
-                ", openingDate=" + openingDate +
-                ", updateDate=" + updateDate +
-                '}';
     }
 }
