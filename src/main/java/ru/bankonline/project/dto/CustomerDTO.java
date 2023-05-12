@@ -14,7 +14,7 @@ import java.util.List;
 @Setter
 
 @Component
-public class CustomerDTO extends DTO {
+public class CustomerDTO implements DTO {
 
     private Integer passportSeries;
     private Integer passportNumber;

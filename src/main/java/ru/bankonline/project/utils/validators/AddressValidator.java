@@ -33,9 +33,9 @@ public class AddressValidator implements Validator {
             errors.rejectValue("house", "", "Номер дома не должен быть пустым!");
         }
 
-        if (addressDTO.getApartment() == null || addressDTO.getApartment().toString().length() > 10) {
+        if (addressDTO.getApartment() == null || addressDTO.getApartment().toString().length() > 7) {
             errors.rejectValue("apartment", "",
-                    "Номер квартиры не должен быть пустым и превышать 10 символов!");
+                    "Номер квартиры не должен быть пустым и превышать 7 символов!");
         }
     }
 }

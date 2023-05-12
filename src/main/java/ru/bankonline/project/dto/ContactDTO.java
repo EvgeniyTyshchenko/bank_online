@@ -14,7 +14,7 @@ import java.util.List;
 @Setter
 @ToString
 @Component
-public class ContactDTO extends DTO {
+public class ContactDTO implements DTO {
 
     private String phoneNumber;
     private String email;

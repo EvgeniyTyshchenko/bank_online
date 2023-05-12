@@ -15,7 +15,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-public class SavingsAccountDTO extends DTO {
+public class SavingsAccountDTO implements DTO {
 
     private String accountNumber;
     private BigDecimal balance;

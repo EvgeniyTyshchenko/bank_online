@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
 
 @Slf4j
 @ExtendWith(MockitoExtension.class)
-public class AddressesServiceImplTest {
+class AddressesServiceImplTest {
 
     @Mock
     private CustomersRepository customersRepository;

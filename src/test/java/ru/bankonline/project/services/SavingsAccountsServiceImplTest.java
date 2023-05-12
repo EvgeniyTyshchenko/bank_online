@@ -31,7 +31,7 @@ import static org.mockito.Mockito.when;
 
 @Slf4j
 @ExtendWith(MockitoExtension.class)
-public class SavingsAccountsServiceImplTest {
+class SavingsAccountsServiceImplTest {
 
     @Mock
     private SavingsAccountsRepository savingsAccountsRepository;

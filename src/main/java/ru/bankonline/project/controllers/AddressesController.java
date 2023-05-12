@@ -29,7 +29,7 @@ public class AddressesController {
         this.modelMapper = modelMapper;
     }
 
-    @GetMapping("/getAll")
+    @GetMapping(value = "/getAll")
     public ResponseEntity<List<AddressDTO>> getAllAddresses() {
         return ResponseEntity.ok(AddressDTO.convertListAddressesToDTO(addressesService.getAllCustomerAddresses(),
                 modelMapper));

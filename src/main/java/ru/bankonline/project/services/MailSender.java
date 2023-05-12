@@ -11,10 +11,10 @@ public class MailSender {
     @Value("${spring.mail.username}")
     private String username;
 
-    private final JavaMailSender mailSender;
+    private final JavaMailSender sender;
 
     public MailSender(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
+        this.sender = mailSender;
     }
 
     public void sendEmail(String emailTo, String subject, String message) {
@@ -25,6 +25,6 @@ public class MailSender {
         mailMessage.setSubject(subject);
         mailMessage.setText(message);
 
-        mailSender.send(mailMessage);
+        sender.send(mailMessage);
     }
 }

@@ -27,7 +27,7 @@ import static org.mockito.Mockito.*;
 
 @Slf4j
 @ExtendWith(MockitoExtension.class)
-public class CardsServiceImplTest {
+class CardsServiceImplTest {
 
     @Mock
     private CardsRepository cardsRepository;

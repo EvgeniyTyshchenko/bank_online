@@ -14,7 +14,7 @@ import java.util.List;
 @Setter
 @ToString
 @Component
-public class AddressDTO extends DTO {
+public class AddressDTO implements DTO {
 
     private String country;
     private String city;

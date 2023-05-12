@@ -15,6 +15,7 @@ import ru.bankonline.project.utils.exceptions.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Random;
 import java.util.UUID;
 
 @Service
@@ -39,9 +40,9 @@ public class CardsServiceImpl implements CardsService {
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
         customersService.checkIfTheCustomerIsBlockedOrDeleted(existingCustomer);
 
-        String uniqueCardNumber = UUID.randomUUID().toString().replaceAll("[^0-9]", "0").substring(0, 16);
-        String uniqueCVV = String.valueOf((int)(Math.random() * 900) + 100);
-        String uniqueAccountNumber = UUID.randomUUID().toString().replaceAll("[^0-9]", "0").substring(0, 20);
+        String uniqueCardNumber = UUID.randomUUID().toString().replaceAll("\\D", "0").substring(0, 16);
+        String uniqueCVV = String.valueOf(new Random().nextInt(900) + 100);
+        String uniqueAccountNumber = UUID.randomUUID().toString().replaceAll("\\D", "0").substring(0, 20);
 
         Card card = new Card(existingCustomer.getCustomerId(), uniqueCardNumber,
                 uniqueCVV, uniqueAccountNumber, BigDecimal.valueOf(0), Currency.RUB);

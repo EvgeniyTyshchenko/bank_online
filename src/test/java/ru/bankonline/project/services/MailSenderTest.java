@@ -13,7 +13,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
-public class MailSenderTest {
+class MailSenderTest {
 
     @Mock
     private JavaMailSender mailSender;
@@ -31,8 +31,8 @@ public class MailSenderTest {
         verify(mailSender).send(messageCaptor.capture());
 
         SimpleMailMessage mailMessage = messageCaptor.getValue();
-        Assertions.assertArrayEquals(mailMessage.getTo(), new String[]{emailTo});
-        Assertions.assertEquals(mailMessage.getSubject(), subject);
-        Assertions.assertEquals(mailMessage.getText(), message);
+        Assertions.assertArrayEquals(new String[]{emailTo}, mailMessage.getTo());
+        Assertions.assertEquals(subject, mailMessage.getSubject());
+        Assertions.assertEquals(message, mailMessage.getText());
     }
 }

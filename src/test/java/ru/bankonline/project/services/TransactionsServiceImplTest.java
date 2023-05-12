@@ -27,7 +27,7 @@ import java.util.List;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class TransactionsServiceImplTest {
+class TransactionsServiceImplTest {
 
     @Mock
     private TransactionsRepository transactionsRepository;

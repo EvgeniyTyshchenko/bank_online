@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 
 @Slf4j
 @ExtendWith(MockitoExtension.class)
-public class DepositSchedulerTest {
+class DepositSchedulerTest {
 
     @Mock
     private SavingsAccountsRepository savingsAccountsRepository;

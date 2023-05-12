@@ -12,8 +12,6 @@ import ru.bankonline.project.services.customersservice.CustomersService;
 import ru.bankonline.project.utils.validators.CustomerValidator;
 import ru.bankonline.project.utils.validators.FullCustomerValidator;
 
-import javax.mail.MessagingException;
-
 import static ru.bankonline.project.utils.exceptions.ErrorResponse.checkIfThereErrorInTheCreation;
 import static ru.bankonline.project.utils.exceptions.ErrorResponse.checkIfThereErrorInTheUpdate;
 
@@ -45,7 +43,7 @@ public class CustomersController {
 
     @PostMapping(path = "/add", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<HttpStatus> addNewCustomer(@RequestBody CustomerDTO customerDTO,
-                                                     BindingResult bindingResult) throws MessagingException {
+                                                     BindingResult bindingResult) {
         checkIfThereErrorInTheCreation(bindingResult, fullCustomerValidator, customerDTO);
         customersService.addNewCustomer(CustomerDTO.convertToCustomer(customerDTO, modelMapper));
         return ResponseEntity.ok(HttpStatus.OK);

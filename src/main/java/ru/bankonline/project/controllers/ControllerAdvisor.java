@@ -23,25 +23,6 @@ public class ControllerAdvisor extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler
-    public ResponseEntity<ErrorResponse> handleException(ContactMissingFromDBException e) {
-        ErrorResponse errorResponse = new ErrorResponse(
-                "Контакт отсутсвует в базе! " +
-                        "Пожалуйста, убедитесь, что данные введены корректно.",
-                System.currentTimeMillis()
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler
-    public ResponseEntity<ErrorResponse> handleException(IncorrectEmailInputException e) {
-        ErrorResponse errorResponse = new ErrorResponse(
-                e.getMessage(),
-                System.currentTimeMillis()
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler
     public ResponseEntity<ErrorResponse> handleException(NotCreatedException e) {
         ErrorResponse errorResponse = new ErrorResponse(
                 e.getMessage(),

@@ -41,14 +41,14 @@ public class CardsController {
     public ResponseEntity<String> blockTheCustomerCard(@PathVariable Integer series, @PathVariable Integer number,
                                                        @PathVariable String cardNumber) {
         cardsService.blockCard(series, number, cardNumber);
-        return ResponseEntity.ok("Карта с номером " + cardNumber + " успешно заблокирована!");
+        return ResponseEntity.ok("Блокировка карты " + cardNumber + " успешно выполнена!");
     }
 
     @PatchMapping("/series/{series}/number/{number}/unlock/{cardNumber}")
     public ResponseEntity<String> unlockTheCustomerCard(@PathVariable Integer series, @PathVariable Integer number,
                                                         @PathVariable String cardNumber) {
         cardsService.unlockCard(series, number, cardNumber);
-        return ResponseEntity.ok("Карта с номером " + cardNumber + " успешно разблокирована!");
+        return ResponseEntity.ok("Произведена разблокировка карты " + cardNumber);
     }
 
     @GetMapping("/series/{series}/number/{number}/checkBalance/{cardNumber}")

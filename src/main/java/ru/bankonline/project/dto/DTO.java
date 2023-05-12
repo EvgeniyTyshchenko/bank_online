@@ -1,4 +1,4 @@
 package ru.bankonline.project.dto;
 
-public abstract class DTO {
+public interface DTO {
 }

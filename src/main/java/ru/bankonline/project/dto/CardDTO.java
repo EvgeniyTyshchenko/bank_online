@@ -14,7 +14,7 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-public class CardDTO extends DTO {
+public class CardDTO implements DTO {
 
     private String cardNumber;
     private String cvv;

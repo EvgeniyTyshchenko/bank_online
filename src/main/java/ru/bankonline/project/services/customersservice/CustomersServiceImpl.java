@@ -51,9 +51,9 @@ public class CustomersServiceImpl implements CustomersService {
         customersRepository.save(customer);
         transactionToRegisterNewCustomer(customer.getCustomerId());
 
-        String message = "Здравствуйте, " + customer.getFirstName() + " " + customer.getPatronymic() + "! \n"
-                + "Добро пожаловать в наш банк!";
-        mailSender.sendEmail(customer.getContactDetails().getEmail(), "Регистрация в банке", message);
+//        String message = "Здравствуйте, " + customer.getFirstName() + " " + customer.getPatronymic() + "! \n"
+//                + "Добро пожаловать в наш банк!";
+//        mailSender.sendEmail(customer.getContactDetails().getEmail(), "Регистрация в банке", message);
 
         log.info("Клиент {} добавлен", customer.getLastName() + " "
                 + customer.getFirstName() + " " + customer.getPatronymic());
