@@ -208,9 +208,14 @@ class SavingsAccountsServiceImplTest {
         when(customersService.getCustomerBySavingAccountNumber(newCustomer.getSavingsAccounts().get(0).getAccountNumber()))
                 .thenReturn(newCustomer);
 
+        String accountNumberCustomer = customer.getSavingsAccounts().get(0).getAccountNumber();
+        String accountNumberNewCustomer = newCustomer.getSavingsAccounts().get(0).getAccountNumber();
+        BigDecimal balanceCustomerMoreThanAcceptable = customer.getSavingsAccounts().get(0).getBalance().add(BigDecimal.valueOf(1_000));
+        Integer passportSeriesCustomer = customer.getPassportSeries();
+        Integer passportNumberCustomer = customer.getPassportNumber();
+
         Assertions.assertThrows(InsufficientFundsException.class,
-                () -> savingsAccountsService.transferFromSavingsAccountToSavingsAccount(customer.getPassportSeries(), customer.getPassportNumber(),
-                        customer.getSavingsAccounts().get(0).getAccountNumber(), newCustomer.getSavingsAccounts().get(0).getAccountNumber(),
-                        customer.getSavingsAccounts().get(0).getBalance().add(BigDecimal.valueOf(1_000))));
+                () -> savingsAccountsService.transferFromSavingsAccountToSavingsAccount(passportSeriesCustomer, passportNumberCustomer,
+                        accountNumberCustomer, accountNumberNewCustomer, balanceCustomerMoreThanAcceptable));
     }
 }

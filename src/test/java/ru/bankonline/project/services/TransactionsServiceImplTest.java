@@ -67,9 +67,11 @@ class TransactionsServiceImplTest {
     void shouldBeAnExceptionDueToAnEmptyTransactionsList() {
         when(customersService.customerSearchByPassportSeriesAndNumber(customer.getPassportSeries(), customer.getPassportNumber())).thenReturn(customer);
         when(transactionsRepository.findAllByCustomerId(customer.getCustomerId())).thenReturn(Collections.emptyList());
+        Integer passportSeriesCustomer = customer.getPassportSeries();
+        Integer passportNumberCustomer = customer.getPassportNumber();
 
         NotFoundInBaseException exception = Assertions.assertThrows(NotFoundInBaseException.class, () -> {
-            transactionsService.getTransactionCustomer(customer.getPassportSeries(), customer.getPassportNumber());
+            transactionsService.getTransactionCustomer(passportSeriesCustomer, passportNumberCustomer);
         });
         Assertions.assertEquals("Список транзакций пуст.", exception.getMessage());
     }
