@@ -101,9 +101,13 @@ class SavingsAccountsServiceImplTest {
         when(customersService.customerSearchByPassportSeriesAndNumber(customer.getPassportSeries(), customer.getPassportNumber()))
                 .thenReturn(customer);
 
+        Integer passportSeriesCustomer = customer.getPassportSeries();
+        Integer passportNumberCustomer = customer.getPassportNumber();
+        String accountNumberNewCustomer = newCustomer.getSavingsAccounts().get(0).getAccountNumber();
+
         Assertions.assertThrows(EnteringSavingsAccountDataException.class,
-                () -> savingsAccountsService.closeAccountAndWithdrawMoneyThroughCashier(customer.getPassportSeries(), customer.getPassportNumber(),
-                        newCustomer.getSavingsAccounts().get(0).getAccountNumber()));
+                () -> savingsAccountsService.closeAccountAndWithdrawMoneyThroughCashier(passportSeriesCustomer, passportNumberCustomer,
+                        accountNumberNewCustomer));
     }
 
     @Test
@@ -112,12 +116,13 @@ class SavingsAccountsServiceImplTest {
         when(customersService.customerSearchByPassportSeriesAndNumber(customer.getPassportSeries(), customer.getPassportNumber()))
                 .thenReturn(customer);
 
+        Integer passportSeriesCustomer = customer.getPassportSeries();
+        Integer passportNumberCustomer = customer.getPassportNumber();
+        String accountNumberCustomer = customer.getSavingsAccounts().get(0).getAccountNumber();
+
         Assertions.assertThrows(ClosingSavingsAccountException.class,
                 () -> savingsAccountsService.closeAccountAndWithdrawMoneyThroughCashier(
-                        customer.getPassportSeries(),
-                        customer.getPassportNumber(),
-                        customer.getSavingsAccounts().get(0).getAccountNumber()
-                ));
+                        passportSeriesCustomer, passportNumberCustomer, accountNumberCustomer));
     }
 
     @Test
@@ -136,9 +141,14 @@ class SavingsAccountsServiceImplTest {
         when(customersService.customerSearchByPassportSeriesAndNumber(customer.getPassportSeries(), customer.getPassportNumber()))
                 .thenReturn(customer);
 
+        Integer passportSeriesCustomer = customer.getPassportSeries();
+        Integer passportNumberCustomer = customer.getPassportNumber();
+        String accountNumberCustomer = customer.getSavingsAccounts().get(0).getAccountNumber();
+        BigDecimal transferAmount = BigDecimal.valueOf(30_000);
+
         Assertions.assertThrows(ViolationTermsDepositException.class,
-                () -> savingsAccountsService.addMoneyToTheAccountThroughTheCashier(customer.getPassportSeries(), customer.getPassportNumber(),
-                        customer.getSavingsAccounts().get(0).getAccountNumber(), BigDecimal.valueOf(30_000)));
+                () -> savingsAccountsService.addMoneyToTheAccountThroughTheCashier(passportSeriesCustomer, passportNumberCustomer,
+                        accountNumberCustomer, transferAmount));
     }
 
     @Test
@@ -167,10 +177,15 @@ class SavingsAccountsServiceImplTest {
         when(customersService.getCustomerBySavingAccountNumber(newCustomer.getSavingsAccounts().get(0).getAccountNumber()))
                 .thenReturn(newCustomer);
 
+        Integer passportSeriesCustomer = customer.getPassportSeries();
+        Integer passportNumberCustomer = customer.getPassportNumber();
+        String cardNumberCustomer = customer.getCards().get(0).getCardNumber();
+        String accountNumberNewCustomer = newCustomer.getSavingsAccounts().get(0).getAccountNumber();
+        BigDecimal balanceCustomerMoreThanAcceptable = customer.getCards().get(0).getBalance().add(BigDecimal.valueOf(1_000));
+
         Assertions.assertThrows(InsufficientFundsException.class,
-                () -> savingsAccountsService.transferFromCardToSavingsAccount(customer.getPassportSeries(), customer.getPassportNumber(),
-                        customer.getCards().get(0).getCardNumber(), newCustomer.getSavingsAccounts().get(0).getAccountNumber(),
-                        customer.getCards().get(0).getBalance().add(BigDecimal.valueOf(1_000))));
+                () -> savingsAccountsService.transferFromCardToSavingsAccount(passportSeriesCustomer, passportNumberCustomer,
+                        cardNumberCustomer, accountNumberNewCustomer, balanceCustomerMoreThanAcceptable));
     }
 
     @Test
@@ -208,11 +223,11 @@ class SavingsAccountsServiceImplTest {
         when(customersService.getCustomerBySavingAccountNumber(newCustomer.getSavingsAccounts().get(0).getAccountNumber()))
                 .thenReturn(newCustomer);
 
+        Integer passportSeriesCustomer = customer.getPassportSeries();
+        Integer passportNumberCustomer = customer.getPassportNumber();
         String accountNumberCustomer = customer.getSavingsAccounts().get(0).getAccountNumber();
         String accountNumberNewCustomer = newCustomer.getSavingsAccounts().get(0).getAccountNumber();
         BigDecimal balanceCustomerMoreThanAcceptable = customer.getSavingsAccounts().get(0).getBalance().add(BigDecimal.valueOf(1_000));
-        Integer passportSeriesCustomer = customer.getPassportSeries();
-        Integer passportNumberCustomer = customer.getPassportNumber();
 
         Assertions.assertThrows(InsufficientFundsException.class,
                 () -> savingsAccountsService.transferFromSavingsAccountToSavingsAccount(passportSeriesCustomer, passportNumberCustomer,
