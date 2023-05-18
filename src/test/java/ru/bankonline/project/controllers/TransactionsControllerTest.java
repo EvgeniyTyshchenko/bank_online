@@ -39,9 +39,10 @@ class TransactionsControllerTest {
 
     @BeforeAll
     static void setUp() {
-        customer = new Customer(1,7788, 459652, "Петренко", "Дмитрий", "Петрович", "12.02.1978",
+        customer = new Customer(7788, 459652, "Петренко", "Дмитрий", "Петрович", "12.02.1978",
                 new Address("Россия", "Москва", "ул.Мирная", "72/3", 453),
                 new Contact("89054128596", "petrenkodmitriiy@yandex.ru"));
+        customer.setCustomerId(1);
 
         transaction = new Transaction(customer.getCustomerId(), "[registration]", "[registration]",
                 BigDecimal.valueOf(0), Currency.RUB, TransactionType.REGISTERCUSTOMER, LocalDateTime.now());

@@ -33,7 +33,9 @@ class CustomerDTOTest {
                 new ContactDTO("89881237898", "yakovb@yandex.ru"));
         customer = new Customer(5685, 666253, "Яковлева", "Ирина", "Игоревна", "25.01.1974",
                 new Address("Россия", "Челябинск", "ул.Родничанская", "27/В", 124),
-                new Contact("89074521212", "yakovlevairinaa@yandex.ru"), cards, savingsAccounts);
+                new Contact("89074521212", "yakovlevairinaa@yandex.ru"));
+        customer.setCards(cards);
+        customer.setSavingsAccounts(savingsAccounts);
     }
 
     @Test
