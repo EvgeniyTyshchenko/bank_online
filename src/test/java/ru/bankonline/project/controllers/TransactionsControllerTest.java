@@ -48,7 +48,7 @@ class TransactionsControllerTest {
     }
 
     @Test
-    public void shouldGetTransactionCustomer() throws Exception {
+    void shouldGetTransactionCustomer() throws Exception {
         customersRepository.save(customer);
         transactionsRepository.save(transaction);
 

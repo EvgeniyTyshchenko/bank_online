@@ -22,26 +22,17 @@ class ContactValidatorTest {
     }
 
     @Test
-    void shouldReturnAnErrorBecauseThePhoneNumberIsNull() {
+    void shouldReturnAnErrorBecauseThePhoneNumberIsNullOrIsEmptyOrNotMatchTheFormat() {
         contactDTO.setPhoneNumber(null);
-
         contactValidator.validate(contactDTO, errors);
         assertTrue(errors.hasErrors());
-    }
 
-    @Test
-    void shouldReturnAnErrorBecauseThePhoneNumberIsEmpty() {
         contactDTO.setPhoneNumber("");
         contactValidator.validate(contactDTO, errors);
-
         assertTrue(errors.hasErrors());
-    }
 
-    @Test
-    void shouldReturnAnErrorBecauseThePhoneNumberDoesNotMatchTheFormat() {
         contactDTO.setPhoneNumber("abc123");
         contactValidator.validate(contactDTO, errors);
-
         assertTrue(errors.hasErrors());
     }
 

@@ -101,17 +101,19 @@ class CardsServiceImplTest {
     @Test
     void shouldBeAnExceptionWhenTheCardIsClosed() {
         cards.get(0).setStatus(Status.CLOSED);
+        Card cardCustomer = customer.getCards().get(0);
 
         Assertions.assertThrows(ClosingCardException.class,
-                () -> cardsService.checkIfTheCardIsNotClosedOrBlocked(customer.getCards().get(0)));
+                () -> cardsService.checkIfTheCardIsNotClosedOrBlocked(cardCustomer));
     }
 
     @Test
     void shouldBeAnExceptionWhenTheCardIsBlocked() {
         cards.get(0).setStatus(Status.BLOCKED);
+        Card cardCustomer = customer.getCards().get(0);
 
         Assertions.assertThrows(ClosingCardException.class,
-                () -> cardsService.checkIfTheCardIsNotClosedOrBlocked(customer.getCards().get(0)));
+                () -> cardsService.checkIfTheCardIsNotClosedOrBlocked(cardCustomer));
     }
 
     @Test
@@ -178,10 +180,13 @@ class CardsServiceImplTest {
         when(customersService.getCustomerByCardNumber(newCustomer.getCards().get(0).getCardNumber()))
                 .thenReturn(newCustomer);
 
+        String cardNumberCustomer = customer.getCards().get(0).getCardNumber();
+        String cardNumberNewCustomer = newCustomer.getCards().get(0).getCardNumber();
+        BigDecimal balanceCustomerMoreThanAcceptable = customer.getCards().get(0).getBalance().add(BigDecimal.valueOf(1_000));
+
         Assertions.assertThrows(InsufficientFundsException.class,
                 () -> cardsService.transferBetweenCards(customer.getPassportSeries(), customer.getPassportNumber(),
-                        customer.getCards().get(0).getCardNumber(), newCustomer.getCards().get(0).getCardNumber(),
-                        customer.getCards().get(0).getBalance().add(BigDecimal.valueOf(1_000))));
+                        cardNumberCustomer, cardNumberNewCustomer, balanceCustomerMoreThanAcceptable));
     }
 
     @Test
