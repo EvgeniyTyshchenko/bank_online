@@ -49,6 +49,8 @@ class CustomersServiceImplTest {
     private static List<SavingsAccount> savingsAccounts;
     private static final Integer newPassportSeries = 1234;
     private static final Integer newPassportNumber = 567890;
+    private static final String nonExistentCardNumber = "6000444433332222";
+    private static final String nonExistentAccountNumber = "44441221456500007887";
 
     @BeforeAll
     static void setUp() {
@@ -126,8 +128,11 @@ class CustomersServiceImplTest {
         when(customersRepository.findByPassportSeriesAndPassportNumber(customer.getPassportSeries(), customer.getPassportNumber()))
                 .thenReturn(Optional.ofNullable(customer));
 
+        Integer passportSeriesCustomer = customer.getPassportSeries();
+        Integer passportNumberCustomer = customer.getPassportNumber();
+
         CustomerBlockingException exception = Assertions.assertThrows(CustomerBlockingException.class,
-                () -> customersService.deleteCustomer(customer.getPassportSeries(), customer.getPassportNumber()));
+                () -> customersService.deleteCustomer(passportSeriesCustomer, passportNumberCustomer));
         Assertions.assertEquals("Клиент заблокирован или удален!", exception.getMessage());
     }
 
@@ -138,8 +143,11 @@ class CustomersServiceImplTest {
         when(customersRepository.findByPassportSeriesAndPassportNumber(customer.getPassportSeries(), customer.getPassportNumber()))
                 .thenReturn(Optional.ofNullable(customer));
 
+        Integer passportSeriesCustomer = customer.getPassportSeries();
+        Integer passportNumberCustomer = customer.getPassportNumber();
+
         CustomerBlockingException exception = Assertions.assertThrows(CustomerBlockingException.class,
-                () -> customersService.deleteCustomer(customer.getPassportSeries(), customer.getPassportNumber()));
+                () -> customersService.deleteCustomer(passportSeriesCustomer, passportNumberCustomer));
         Assertions.assertEquals("Клиент заблокирован или удален!", exception.getMessage());
     }
 
@@ -173,8 +181,11 @@ class CustomersServiceImplTest {
 
         Customer foundCustomer = customersService.customerSearchByPassportSeriesAndNumber(customer.getPassportSeries(),
                 customer.getPassportNumber());
+        Integer passportSeriesFoundCustomer = foundCustomer.getPassportSeries();
+        Integer passportNumberFoundCustomer = foundCustomer.getPassportNumber();
+
         CustomerBalanceNotZeroException exception = Assertions.assertThrows(CustomerBalanceNotZeroException.class, () -> customersService
-                .deleteCustomer(foundCustomer.getPassportSeries(), foundCustomer.getPassportNumber()));
+                .deleteCustomer(passportSeriesFoundCustomer, passportNumberFoundCustomer));
         Assertions.assertEquals("Ошибка в удалении аккаунта! У клиента " + customer.getLastName() + " "
                 + customer.getFirstName() + " " + customer.getPatronymic() + " на картах и/или счетах имеются денежные средства. " +
                 "Для корректного выполнения операции, Вам необходимо снять/перевести ВСЕ денежные средства со своих счетов и/или карт.",
@@ -206,8 +217,11 @@ class CustomersServiceImplTest {
         when(customersRepository.findPassportDuplicates(customerToUpdate.getPassportSeries(), customerToUpdate.getPassportNumber()))
                 .thenReturn(Optional.of(2));
 
-        Assertions.assertThrows(PassportDuplicateException.class, () -> customersService.updateCustomer(customerToUpdate.getPassportSeries(),
-                customerToUpdate.getPassportNumber(), customerToUpdate));
+        Integer passportSeriesCustomerToUpdate = customerToUpdate.getPassportSeries();
+        Integer passportNumberCustomerToUpdate = customerToUpdate.getPassportNumber();
+
+        Assertions.assertThrows(PassportDuplicateException.class, () -> customersService.updateCustomer(passportSeriesCustomerToUpdate,
+                passportNumberCustomerToUpdate, customerToUpdate));
     }
 
     @Test
@@ -225,7 +239,7 @@ class CustomersServiceImplTest {
     @Test
     void shouldGetExceptionIfTheCustomerIsNotFoundByCardNumber() {
         Assertions.assertThrows(CustomerMissingFromDBException.class, () -> {
-            customersService.getCustomerByCardNumber(anyString());
+            customersService.getCustomerByCardNumber(nonExistentCardNumber);
         });
     }
 
@@ -244,7 +258,7 @@ class CustomersServiceImplTest {
     @Test
     void shouldGetExceptionIfTheCustomerIsNotFoundByAccountNumber() {
         Assertions.assertThrows(CustomerMissingFromDBException.class, () -> {
-            customersService.getCustomerBySavingAccountNumber(anyString());
+            customersService.getCustomerBySavingAccountNumber(nonExistentAccountNumber);
         });
     }
 
