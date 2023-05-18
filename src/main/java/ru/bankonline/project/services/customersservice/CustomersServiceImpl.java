@@ -22,9 +22,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @Transactional(readOnly = true)
-@Slf4j
 public class CustomersServiceImpl implements CustomersService {
 
     private final CustomersRepository customersRepository;
@@ -51,9 +51,9 @@ public class CustomersServiceImpl implements CustomersService {
         customersRepository.save(customer);
         transactionToRegisterNewCustomer(customer.getCustomerId());
 
-//        String message = "Здравствуйте, " + customer.getFirstName() + " " + customer.getPatronymic() + "! \n"
-//                + "Добро пожаловать в наш банк!";
-//        mailSender.sendEmail(customer.getContactDetails().getEmail(), "Регистрация в банке", message);
+        String message = "Здравствуйте, " + customer.getFirstName() + " " + customer.getPatronymic() + "! \n"
+                + "Добро пожаловать в наш банк!";
+        mailSender.sendEmail(customer.getContactDetails().getEmail(), "Регистрация в банке", message);
 
         log.info("Клиент {} добавлен", customer.getLastName() + " "
                 + customer.getFirstName() + " " + customer.getPatronymic());

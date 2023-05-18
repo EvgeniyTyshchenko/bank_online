@@ -46,26 +46,17 @@ class ContactValidatorTest {
     }
 
     @Test
-    void shouldReturnAnErrorBecauseTheEmailIsNull() {
+    void shouldReturnAnErrorBecauseTheEmailIsNullOrIsEmptyOrNotMatchTheFormat() {
         contactDTO.setEmail(null);
         contactValidator.validate(contactDTO, errors);
-
         assertTrue(errors.hasErrors());
-    }
 
-    @Test
-    void shouldReturnAnErrorBecauseTheEmailIsEmpty() {
         contactDTO.setEmail("");
         contactValidator.validate(contactDTO, errors);
-
         assertTrue(errors.hasErrors());
-    }
 
-    @Test
-    void shouldReturnAnErrorBecauseTheEmailDoesNotMatchTheFormat() {
         contactDTO.setEmail("test123");
         contactValidator.validate(contactDTO, errors);
-
         assertTrue(errors.hasErrors());
     }
 

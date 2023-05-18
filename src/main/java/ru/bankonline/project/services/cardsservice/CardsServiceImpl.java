@@ -1,6 +1,9 @@
 package ru.bankonline.project.services.cardsservice;
 
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.math3.random.RandomDataGenerator;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.bankonline.project.entity.Card;
 import ru.bankonline.project.entity.Customer;
 import ru.bankonline.project.entity.Transaction;
@@ -15,10 +18,11 @@ import ru.bankonline.project.utils.exceptions.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Random;
 import java.util.UUID;
 
+@Slf4j
 @Service
+@Transactional(readOnly = true)
 public class CardsServiceImpl implements CardsService {
 
     private final CardsRepository cardsRepository;
@@ -35,13 +39,14 @@ public class CardsServiceImpl implements CardsService {
     }
 
     @Override
+    @Transactional
     public void openCardToTheCustomer(Integer passportSeries, Integer passportNumber) {
         Customer existingCustomer = customersService
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
         customersService.checkIfTheCustomerIsBlockedOrDeleted(existingCustomer);
 
         String uniqueCardNumber = UUID.randomUUID().toString().replaceAll("\\D", "0").substring(0, 16);
-        String uniqueCVV = String.valueOf(new Random().nextInt(900) + 100);
+        String uniqueCVV = createRandomThreeDigitNumber();
         String uniqueAccountNumber = UUID.randomUUID().toString().replaceAll("\\D", "0").substring(0, 20);
 
         Card card = new Card(existingCustomer.getCustomerId(), uniqueCardNumber,
@@ -60,9 +65,11 @@ public class CardsServiceImpl implements CardsService {
                 + "Активировать карту и задать PIN-код Вам поможет менеджер банка при получении. \n" +
                 "Спасибо, что пользуетесь услугами банка!";
         mailSender.sendEmail(existingCustomer.getContactDetails().getEmail(), "Заявка на открытие карты", message);
+        log.info("Открытие карты. Номер:" + card.getCardNumber());
     }
 
     @Override
+    @Transactional
     public void closeCard(Integer passportSeries, Integer passportNumber, String cardNumber) {
         Customer existingCustomer = customersService
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
@@ -82,9 +89,11 @@ public class CardsServiceImpl implements CardsService {
                 + "CVV: " + card.getCvv() + "\n"
                 + "Номер счета: " + card.getAccountNumber() + "\n";
         mailSender.sendEmail(existingCustomer.getContactDetails().getEmail(), "Закрытие карты", message);
+        log.info("Закрытие карты. Номер:" + card.getCardNumber());
     }
 
     @Override
+    @Transactional
     public void blockCard(Integer passportSeries, Integer passportNumber, String cardNumber) {
         Customer existingCustomer = customersService
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
@@ -94,9 +103,11 @@ public class CardsServiceImpl implements CardsService {
         checkIfTheCardIsNotClosedOrBlocked(card);
         enrichCardForBlocking(card);
         transactionToBlock(existingCustomer.getCustomerId(), card);
+        log.info("Блокировка карты. Номер:" + card.getCardNumber());
     }
 
     @Override
+    @Transactional
     public void unlockCard(Integer passportSeries, Integer passportNumber, String cardNumber) {
         Customer existingCustomer = customersService
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
@@ -106,9 +117,11 @@ public class CardsServiceImpl implements CardsService {
         checkIfTheCardIsClosedOrActive(card);
         enrichCardForUnlock(card);
         transactionToUnlock(existingCustomer.getCustomerId(), card);
+        log.info("Разблокировка карты. Номер:" + card.getCardNumber());
     }
 
     @Override
+    @Transactional
     public String checkBalance(Integer passportSeries, Integer passportNumber, String cardNumber) {
         Customer existingCustomer = customersService
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
@@ -117,10 +130,12 @@ public class CardsServiceImpl implements CardsService {
         Card card = checkCardExists(existingCustomer, cardNumber);
         checkIfTheCardIsNotClosedOrBlocked(card);
         transactionBalanceRequest(existingCustomer, card);
+        log.info("Проверка баланса карты. Номер:" + card.getCardNumber());
         return String.format("Баланс: %.2f %s", card.getBalance(), card.getCurrency().toString());
     }
 
     @Override
+    @Transactional
     public void transferBetweenCards(Integer passportSeries, Integer passportNumber,
                                      String senderCardNumber, String recipientCardNumber, BigDecimal amount) {
         Customer senderCustomer = customersService
@@ -142,6 +157,9 @@ public class CardsServiceImpl implements CardsService {
             moneyReceiptToTheCardTransaction(recipientCustomer, senderCard, recipientCard, amount);
             cardsRepository.save(senderCard);
             cardsRepository.save(recipientCard);
+
+            log.info("Перевод между картами. Карта отправителя: " + senderCard.getCardNumber()
+            + ", карта получателя: " + recipientCard.getCardNumber());
         } else {
             throw new InsufficientFundsException("Недостаточно денежных средств для совершения транзакции!");
         }
@@ -153,6 +171,7 @@ public class CardsServiceImpl implements CardsService {
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
         customersService.checkIfTheCustomerIsBlockedOrDeleted(existingCustomer);
 
+        log.info("Запрос информации по карте: " + cardNumber);
         return checkCardExists(existingCustomer, cardNumber);
     }
 
@@ -248,5 +267,12 @@ public class CardsServiceImpl implements CardsService {
         Transaction transaction = new Transaction(customer.getCustomerId(), "[card balance request]", "[card balance request]",
                 card.getBalance(), Currency.RUB, TransactionType.CHECKBALANCE, LocalDateTime.now());
         transactionsRepository.save(transaction);
+    }
+
+    private String createRandomThreeDigitNumber() {
+        int leftLimit = 100;
+        int rightLimit = 999;
+        RandomDataGenerator randomDataGenerator = new RandomDataGenerator();
+        return String.valueOf(randomDataGenerator.nextInt(leftLimit, rightLimit));
     }
 }

@@ -46,7 +46,7 @@ class ContactsServiceImplTest {
 
     @Test
     void shouldGetAllCustomerContacts() {
-        when(contactsRepository.findByContacts()).thenReturn(contactList);
+        when(contactsRepository.findAll()).thenReturn(contactList);
 
         List<Contact> actualContacts = contactsService.getAllCustomerContactsDetails();
         Assertions.assertEquals(contactList, actualContacts);
@@ -54,7 +54,7 @@ class ContactsServiceImplTest {
 
     @Test
     void shouldBeAnExceptionDueToAnEmptyContactList() {
-        when(contactsRepository.findByContacts()).thenReturn(Collections.emptyList());
+        when(contactsRepository.findAll()).thenReturn(Collections.emptyList());
 
         NotFoundInBaseException exception = Assertions.assertThrows(NotFoundInBaseException.class, () -> {
             contactsService.getAllCustomerContactsDetails();

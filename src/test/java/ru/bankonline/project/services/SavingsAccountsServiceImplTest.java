@@ -83,6 +83,7 @@ class SavingsAccountsServiceImplTest {
                 .thenReturn(customer);
 
         savingsAccountsService.openSavingAccountToTheCustomer(customer.getPassportSeries(), customer.getPassportNumber());
+        log.info("Открытие сберегательного счета");
     }
 
     @Test
@@ -92,6 +93,7 @@ class SavingsAccountsServiceImplTest {
 
         savingsAccountsService.closeAccountAndWithdrawMoneyThroughCashier(customer.getPassportSeries(), customer.getPassportNumber(),
                 customer.getSavingsAccounts().get(0).getAccountNumber());
+        log.info("Закрытие сберегательного счета");
     }
 
     @Test
@@ -111,8 +113,11 @@ class SavingsAccountsServiceImplTest {
                 .thenReturn(customer);
 
         Assertions.assertThrows(ClosingSavingsAccountException.class,
-                () -> savingsAccountsService.closeAccountAndWithdrawMoneyThroughCashier(customer.getPassportSeries(), customer.getPassportNumber(),
-                        customer.getSavingsAccounts().get(0).getAccountNumber()));
+                () -> savingsAccountsService.closeAccountAndWithdrawMoneyThroughCashier(
+                        customer.getPassportSeries(),
+                        customer.getPassportNumber(),
+                        customer.getSavingsAccounts().get(0).getAccountNumber()
+                ));
     }
 
     @Test
@@ -123,6 +128,7 @@ class SavingsAccountsServiceImplTest {
 
         savingsAccountsService.addMoneyToTheAccountThroughTheCashier(newCustomer.getPassportSeries(), newCustomer.getPassportNumber(),
                 newCustomer.getSavingsAccounts().get(0).getAccountNumber(), BigDecimal.valueOf(100_000));
+        log.info("Пополнение денежных средств на сберегательный счет через кассу");
     }
 
     @Test
@@ -148,6 +154,7 @@ class SavingsAccountsServiceImplTest {
         savingsAccountsService.transferFromCardToSavingsAccount(customer.getPassportSeries(), customer.getPassportNumber(),
                 customer.getCards().get(0).getCardNumber(), newCustomer.getSavingsAccounts().get(0).getAccountNumber(),
                 BigDecimal.valueOf(10_000));
+        log.info("Перевод денежных средств с карты на сберегательный счет");
     }
 
     @Test
@@ -174,6 +181,7 @@ class SavingsAccountsServiceImplTest {
 
         savingsAccountsService.checkBalance(customer.getPassportSeries(), customer.getPassportNumber(),
                 customer.getSavingsAccounts().get(0).getAccountNumber());
+        log.info("Проверка баланса сберегательного счета");
     }
 
     @Test
@@ -188,6 +196,7 @@ class SavingsAccountsServiceImplTest {
         savingsAccountsService.transferFromSavingsAccountToSavingsAccount(customer.getPassportSeries(), customer.getPassportNumber(),
                 customer.getSavingsAccounts().get(0).getAccountNumber(), newCustomer.getSavingsAccounts().get(0).getAccountNumber(),
                 BigDecimal.valueOf(45_000));
+        log.info("Перевод денежных средств между сберегательными счетами");
     }
 
     @Test

@@ -10,7 +10,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class ContactDTOTest {
+class ContactDTOTest {
 
     private static ModelMapper modelMapper;
     private static ContactDTO contactDTO;
@@ -46,12 +46,12 @@ public class ContactDTOTest {
 
         List<ContactDTO> contactDTOs = ContactDTO.convertListContactDetailsToDTO(contacts, modelMapper);
 
-        assertEquals(contactDTOs.size(), 2);
+        assertEquals(2, contactDTOs.size());
 
-        assertEquals(contactDTOs.get(0).getPhoneNumber(), "89057774545");
-        assertEquals(contactDTOs.get(0).getEmail(), "test2@yandex.ru");
+        assertEquals("89057774545", contactDTOs.get(0).getPhoneNumber());
+        assertEquals("test2@yandex.ru", contactDTOs.get(0).getEmail());
 
-        assertEquals(contactDTOs.get(1).getPhoneNumber(), "89034551212");
-        assertEquals(contactDTOs.get(1).getEmail(), "test3@yandex.ru");
+        assertEquals("89034551212", contactDTOs.get(1).getPhoneNumber());
+        assertEquals("test3@yandex.ru", contactDTOs.get(1).getEmail());
     }
 }

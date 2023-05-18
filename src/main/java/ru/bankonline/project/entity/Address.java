@@ -7,6 +7,7 @@ import javax.persistence.*;
 @NoArgsConstructor
 @Getter
 @Setter
+@EqualsAndHashCode
 @ToString
 @Entity
 @Table(name = "addresses")

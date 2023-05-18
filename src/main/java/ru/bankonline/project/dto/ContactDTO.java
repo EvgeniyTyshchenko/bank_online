@@ -2,7 +2,6 @@ package ru.bankonline.project.dto;
 
 import lombok.*;
 import org.modelmapper.ModelMapper;
-import org.springframework.stereotype.Component;
 import ru.bankonline.project.entity.Contact;
 
 import java.util.ArrayList;
@@ -13,7 +12,6 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
-@Component
 public class ContactDTO implements DTO {
 
     private String phoneNumber;

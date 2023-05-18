@@ -1,7 +1,5 @@
 package ru.bankonline.project.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeAll;
 
 import org.junit.jupiter.api.Test;
@@ -10,79 +8,136 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import ru.bankonline.project.BankOnlineApplication;
 import ru.bankonline.project.constants.Currency;
+import ru.bankonline.project.constants.Status;
 import ru.bankonline.project.entity.Card;
 import ru.bankonline.project.entity.Contact;
 import ru.bankonline.project.entity.Customer;
-import ru.bankonline.project.repositories.CardsRepository;
 import ru.bankonline.project.repositories.CustomersRepository;
 import ru.bankonline.project.services.cardsservice.CardsService;
 
 import java.math.BigDecimal;
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
 
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
+@SpringBootTest(classes = BankOnlineApplication.class)
 @AutoConfigureMockMvc
-@ActiveProfiles("test")
-public class CardsControllerTest {
+class CardsControllerTest {
 
     @Mock
     private CardsService cardsService;
     @Mock
     private ModelMapper modelMapper;
     @Autowired
-    private MockMvc mockMvc;
-    @MockBean
-    private CardsRepository cardsRepository;
-    @MockBean
     private CustomersRepository customersRepository;
+    @Autowired
+    private MockMvc mockMvc;
     private static Customer customer;
-    private static ObjectMapper objectMapper;
-
 
     @BeforeAll
     static void setUp() {
-        objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-
         customer = new Customer();
         customer.setCustomerId(1);
         customer.setPassportSeries(8596);
         customer.setPassportNumber(120562);
-        customer.setLastName("Мотько");
-        customer.setFirstName("Владислав");
-        customer.setPatronymic("Евгеньевич");
-        customer.setBirthday("07.12.1976");
         customer.setContactDetails(new Contact("89884556598", "mottvladiskav@mail.ru"));
 
-//        List<Card> cards = new ArrayList<>();
-//        Card card = new Card(customer.getCustomerId(), "4444456584555698", "889",
-//                "99965845255550002458", BigDecimal.valueOf(0), Currency.RUB);
-//        cards.add(card);
-//        customer.setCards(cards);
+        Card card = new Card(customer.getCustomerId(), "4004456500055698", "127",
+                "90065845000550002458", BigDecimal.valueOf(0), Currency.RUB);
+        customer.setCards(new ArrayList<>(List.of(card)));
     }
 
     @Test
-    public void shouldAddNewCardToTheCustomer() throws Exception {
-        when(customersRepository.findByPassportSeriesAndPassportNumber(8596, 120562))
-                .thenReturn(Optional.of(customer));
-        when(customersRepository.save(customer)).thenReturn(customer);
+    void shouldAddNewCardToTheCustomer() throws Exception {
+        customersRepository.save(customer);
 
-        Card card = new Card(1, "4004456500055698", "127",
-                "90065845000550002458", BigDecimal.valueOf(0), Currency.RUB);
-
-        mockMvc.perform(post("/cards/series/8596/number/120562")
-                .content(objectMapper.writeValueAsString(card))
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+        mockMvc.perform(post("/cards/series/{series}/number/{number}",
+                        customer.getPassportSeries(), customer.getPassportNumber()))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void shouldDeleteTheCardFromTheCustomer() throws Exception {
+        customersRepository.save(customer);
+
+        mockMvc.perform(patch("/cards/series/{series}/number/{number}/close/{cardNumber}",
+                customer.getPassportSeries(), customer.getPassportNumber(), customer.getCards().get(0).getCardNumber()))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Карта с номером "
+                        + customer.getCards().get(0).getCardNumber() + " успешно закрыта!"));
+    }
+
+    @Test
+    void shouldBlockTheCustomerCard() throws Exception {
+        customersRepository.save(customer);
+
+        mockMvc.perform(patch("/cards/series/{series}/number/{number}/block/{cardNumber}",
+                        customer.getPassportSeries(), customer.getPassportNumber(), customer.getCards().get(0).getCardNumber()))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Блокировка карты "
+                        + customer.getCards().get(0).getCardNumber() + " успешно выполнена!"));
+    }
+
+    @Test
+    void shouldUnlockTheCustomerCard() throws Exception {
+        customer.getCards().get(0).setStatus(Status.BLOCKED);
+        customersRepository.save(customer);
+
+        mockMvc.perform(patch("/cards/series/{series}/number/{number}/unlock/{cardNumber}",
+                        customer.getPassportSeries(), customer.getPassportNumber(), customer.getCards().get(0).getCardNumber()))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Произведена разблокировка карты " + customer.getCards().get(0).getCardNumber()));
+    }
+
+    @Test
+    void shouldCheckBalanceCard() throws Exception {
+        customer.getCards().get(0).setStatus(Status.ACTIVE);
+        customersRepository.save(customer);
+
+        mockMvc.perform(get("/cards/series/{series}/number/{number}/checkBalance/{cardNumber}",
+                        customer.getPassportSeries(), customer.getPassportNumber(), customer.getCards().get(0).getCardNumber()))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Баланс: 0,00 RUB"));
+    }
+
+    @Test
+    void shouldTransferBetweenCardsCustomers() throws Exception {
+        Customer newCustomer = new Customer();
+        newCustomer.setPassportSeries(9956);
+        newCustomer.setPassportNumber(789655);
+        Card card = new Card(1, "5500895566000044", "990",
+                "78888555000047774481", BigDecimal.valueOf(15_000), Currency.RUB);
+        newCustomer.setCards(new ArrayList<>(List.of(card)));
+
+        customersRepository.save(customer);
+        customersRepository.save(newCustomer);
+
+        mockMvc.perform(MockMvcRequestBuilders.patch("/cards/{series}/{number}/{senderCardNumber}/{recipientCardNumber}/{amount}",
+                                newCustomer.getPassportSeries(), newCustomer.getPassportNumber(), newCustomer.getCards().get(0).getCardNumber(),
+                        customer.getCards().get(0).getCardNumber(), 5_000))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Перевод с карты: " + newCustomer.getCards().get(0).getCardNumber() + " на карту: " +
+                        customer.getCards().get(0).getCardNumber() + " - выполнен!"));
+    }
+
+    @Test
+    void shouldGetCardDetails() throws Exception {
+        customer.getCards().get(0).setBalance(BigDecimal.ZERO);
+        customersRepository.save(customer);
+
+        mockMvc.perform(get("/cards/details/{series}/{number}/{cardNumber}",
+                        customer.getPassportSeries(), customer.getPassportNumber(), customer.getCards().get(0).getCardNumber()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.cardNumber").value("4004456500055698"))
+                .andExpect(jsonPath("$.cvv").value("127"))
+                .andExpect(jsonPath("$.accountNumber").value("90065845000550002458"))
+                .andExpect(jsonPath("$.balance").value(0))
+                .andExpect(jsonPath("$.currency").value("RUB"));
     }
 }

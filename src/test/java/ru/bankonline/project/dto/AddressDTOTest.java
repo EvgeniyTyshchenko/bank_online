@@ -53,18 +53,18 @@ class AddressDTOTest {
 
         List<AddressDTO> addressDTOs = AddressDTO.convertListAddressesToDTO(addresses, modelMapper);
 
-        assertEquals(addressDTOs.size(), 2);
+        assertEquals(2, addressDTOs.size());
 
-        assertEquals(addressDTOs.get(0).getCountry(), "Россия");
-        assertEquals(addressDTOs.get(0).getCity(), "Казань");
-        assertEquals(addressDTOs.get(0).getStreet(), "ул.Нижняя");
-        assertEquals(addressDTOs.get(0).getHouse(), "17/1");
-        assertEquals(addressDTOs.get(0).getApartment(), 158);
+        assertEquals("Россия", addressDTOs.get(0).getCountry());
+        assertEquals("Казань", addressDTOs.get(0).getCity());
+        assertEquals("ул.Нижняя", addressDTOs.get(0).getStreet());
+        assertEquals("17/1", addressDTOs.get(0).getHouse());
+        assertEquals(158, addressDTOs.get(0).getApartment());
 
-        assertEquals(addressDTOs.get(1).getCountry(), "Россия");
-        assertEquals(addressDTOs.get(1).getCity(), "Краснодар");
-        assertEquals(addressDTOs.get(1).getStreet(), "ул.Лунная");
-        assertEquals(addressDTOs.get(1).getHouse(), "1/Б");
-        assertEquals(addressDTOs.get(1).getApartment(), 4);
+        assertEquals("Россия", addressDTOs.get(1).getCountry());
+        assertEquals("Краснодар", addressDTOs.get(1).getCity());
+        assertEquals("ул.Лунная", addressDTOs.get(1).getStreet());
+        assertEquals("1/Б", addressDTOs.get(1).getHouse());
+        assertEquals(4, addressDTOs.get(1).getApartment());
     }
 }

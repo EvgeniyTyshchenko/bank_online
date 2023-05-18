@@ -2,6 +2,7 @@ package ru.bankonline.project.services.addressesservice;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.bankonline.project.entity.Address;
 import ru.bankonline.project.entity.Customer;
 import ru.bankonline.project.repositories.AddressesRepository;
@@ -14,6 +15,7 @@ import java.util.List;
 
 @Slf4j
 @Service
+@Transactional(readOnly = true)
 public class AddressesServiceImpl implements AddressesService {
 
     private final CustomersRepository customersRepository;
@@ -29,7 +31,7 @@ public class AddressesServiceImpl implements AddressesService {
 
     @Override
     public List<Address> getAllCustomerAddresses() {
-        List<Address> addresses = addressesRepository.findByAddresses();
+        List<Address> addresses = addressesRepository.findAll();
         if (addresses.isEmpty()) {
             throw new NotFoundInBaseException("Список адресов пуст.");
         }
@@ -37,6 +39,7 @@ public class AddressesServiceImpl implements AddressesService {
     }
 
     @Override
+    @Transactional
     public void updateAddress(Integer passportSeries, Integer passportNumber, Address address) {
         Customer existingCustomer = customersService
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);

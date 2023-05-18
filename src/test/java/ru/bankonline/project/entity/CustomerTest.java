@@ -38,6 +38,8 @@ class CustomerTest {
         assertEquals(453, customer.getAddress().getApartment());
         assertEquals("89054518596", customer.getContactDetails().getPhoneNumber());
         assertEquals("romanovaaa@yandex.ru", customer.getContactDetails().getEmail());
+        customer.setCards(null);
+        customer.setSavingsAccounts(null);
         assertNull(customer.getCards());
         assertNull(customer.getSavingsAccounts());
     }

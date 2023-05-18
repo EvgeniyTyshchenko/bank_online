@@ -1,5 +1,6 @@
 package ru.bankonline.project.services;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,7 @@ import java.util.List;
 
 import static org.mockito.Mockito.when;
 
+@Slf4j
 @ExtendWith(MockitoExtension.class)
 class TransactionsServiceImplTest {
 
@@ -58,6 +60,7 @@ class TransactionsServiceImplTest {
 
         List<Transaction> actualTransactions = transactionsService.getTransactionCustomer(customer.getPassportSeries(), customer.getPassportNumber());
         Assertions.assertEquals(transactionList, actualTransactions);
+        log.info("Получение всех транзакций клиента");
     }
 
     @Test

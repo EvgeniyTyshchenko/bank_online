@@ -9,7 +9,6 @@ import ru.bankonline.project.utils.exceptions.*;
 
 import javax.mail.MessagingException;
 
-
 @RestControllerAdvice
 public class ControllerAdvisor extends ResponseEntityExceptionHandler {
 
@@ -19,7 +18,7 @@ public class ControllerAdvisor extends ResponseEntityExceptionHandler {
                 e.getMessage(),
                 System.currentTimeMillis()
         );
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler
@@ -46,7 +45,7 @@ public class ControllerAdvisor extends ResponseEntityExceptionHandler {
                 e.getMessage(),
                 System.currentTimeMillis()
         );
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler
@@ -83,7 +82,7 @@ public class ControllerAdvisor extends ResponseEntityExceptionHandler {
                 e.getMessage(),
                 System.currentTimeMillis()
         );
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler
@@ -100,7 +99,7 @@ public class ControllerAdvisor extends ResponseEntityExceptionHandler {
                 e.getMessage(),
                 System.currentTimeMillis()
         );
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler
@@ -109,7 +108,7 @@ public class ControllerAdvisor extends ResponseEntityExceptionHandler {
                 e.getMessage(),
                 System.currentTimeMillis()
         );
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler
@@ -127,7 +126,7 @@ public class ControllerAdvisor extends ResponseEntityExceptionHandler {
                 e.getMessage(),
                 System.currentTimeMillis()
         );
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler
@@ -136,6 +135,6 @@ public class ControllerAdvisor extends ResponseEntityExceptionHandler {
                 e.getMessage(),
                 System.currentTimeMillis()
         );
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorResponse, HttpStatus.NO_CONTENT);
     }
 }

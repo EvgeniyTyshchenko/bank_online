@@ -77,19 +77,21 @@ class CardsServiceImplTest {
 
         verify(customersService, times(1)).checkIfTheCustomerIsBlockedOrDeleted(customer);
         verify(cardsRepository, times(1)).save(any(Card.class));
+        log.info("Открытие карты");
     }
 
     @Test
     void shouldGetCard() {
         Card resultCard = cardsService.checkCardExists(customer, customer.getCards().get(0).getCardNumber());
         Assertions.assertEquals(customer.getCards().get(0), resultCard);
+        log.info(resultCard.getCardNumber());
     }
-    //---
 
     @Test
     void shouldBeAnExceptionDueToTheAbsenceOfThisCardFromTheCustomer() {
+        String cardNumber = newCustomer.getCards().get(0).getCardNumber();
         EnteringCardDataException exception = Assertions.assertThrows(EnteringCardDataException.class, () -> {
-            cardsService.checkCardExists(customer, newCustomer.getCards().get(0).getCardNumber());
+            cardsService.checkCardExists(customer, cardNumber);
         });
         Assertions.assertEquals("Номер карты, который вы вводите отсутствует у клиента "
                 + customer.getLastName() + " " + customer.getFirstName() + " " + customer.getPatronymic()
@@ -121,8 +123,8 @@ class CardsServiceImplTest {
 
         cardsService.closeCard(customer.getPassportSeries(), customer.getPassportNumber(),
                 customer.getCards().get(0).getCardNumber());
+        log.info("Закрытие карты");
     }
-    //---
 
     @Test
     void shouldSuccessfullyBlockTheCard() {
@@ -133,7 +135,6 @@ class CardsServiceImplTest {
         cardsService.blockCard(customer.getPassportSeries(), customer.getPassportNumber(),
                 customer.getCards().get(0).getCardNumber());
     }
-    //---
 
     @Test
     void shouldSuccessfullyUnlockTheCard() {
@@ -144,7 +145,6 @@ class CardsServiceImplTest {
         cardsService.unlockCard(customer.getPassportSeries(), customer.getPassportNumber(),
                 customer.getCards().get(0).getCardNumber());
     }
-    //---
 
     @Test
     void shouldSuccessfullyCheckTheBalance() {
@@ -154,8 +154,8 @@ class CardsServiceImplTest {
 
         cardsService.checkBalance(customer.getPassportSeries(), customer.getPassportNumber(),
                 customer.getCards().get(0).getCardNumber());
+        log.info("Проверка баланса карты");
     }
-    //---
 
     @Test
     void shouldBeSuccessfulTransferBetweenTheCards() {
@@ -163,10 +163,12 @@ class CardsServiceImplTest {
                 .thenReturn(customer);
         when(customersService.getCustomerByCardNumber(newCustomer.getCards().get(0).getCardNumber()))
                 .thenReturn(newCustomer);
+        customer.getCards().get(0).setStatus(Status.ACTIVE);
 
         cardsService.transferBetweenCards(customer.getPassportSeries(), customer.getPassportNumber(),
                 customer.getCards().get(0).getCardNumber(), newCustomer.getCards().get(0).getCardNumber(),
                 new BigDecimal(1_000));
+        log.info("Перевод денежных средств между картами");
     }
 
     @Test
@@ -181,7 +183,6 @@ class CardsServiceImplTest {
                         customer.getCards().get(0).getCardNumber(), newCustomer.getCards().get(0).getCardNumber(),
                         customer.getCards().get(0).getBalance().add(BigDecimal.valueOf(1_000))));
     }
-    //---
 
     @Test
     void shouldGetInformationOnTheCard() {

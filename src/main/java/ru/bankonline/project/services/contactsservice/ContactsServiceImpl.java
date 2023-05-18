@@ -2,6 +2,7 @@ package ru.bankonline.project.services.contactsservice;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.bankonline.project.entity.Contact;
 import ru.bankonline.project.entity.Customer;
 import ru.bankonline.project.repositories.ContactsRepository;
@@ -14,6 +15,7 @@ import java.util.List;
 
 @Slf4j
 @Service
+@Transactional(readOnly = true)
 public class ContactsServiceImpl implements ContactsService {
 
     private final CustomersRepository customersRepository;
@@ -28,7 +30,7 @@ public class ContactsServiceImpl implements ContactsService {
 
     @Override
     public List<Contact> getAllCustomerContactsDetails() {
-        List<Contact> contacts = contactsRepository.findByContacts();
+        List<Contact> contacts = contactsRepository.findAll();
         if (contacts.isEmpty()) {
             throw new NotFoundInBaseException("Список контактов пуст.");
         }
@@ -36,6 +38,7 @@ public class ContactsServiceImpl implements ContactsService {
     }
 
     @Override
+    @Transactional
     public void updateContactsDetails(Integer passportSeries, Integer passportNumber, Contact contact) {
         Customer existingCustomer = customersService.customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
         customersService.checkIfTheCustomerIsBlockedOrDeleted(existingCustomer);

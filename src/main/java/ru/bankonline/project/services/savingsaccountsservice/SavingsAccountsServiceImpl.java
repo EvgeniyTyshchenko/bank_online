@@ -1,6 +1,8 @@
 package ru.bankonline.project.services.savingsaccountsservice;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.bankonline.project.entity.Card;
 import ru.bankonline.project.entity.Customer;
 import ru.bankonline.project.entity.SavingsAccount;
@@ -19,7 +21,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Slf4j
 @Service
+@Transactional(readOnly = true)
 public class SavingsAccountsServiceImpl implements SavingsAccountsService {
 
     private final SavingsAccountsRepository savingsAccountsRepository;
@@ -39,21 +43,24 @@ public class SavingsAccountsServiceImpl implements SavingsAccountsService {
     }
 
     @Override
+    @Transactional
     public void openSavingAccountToTheCustomer(Integer passportSeries, Integer passportNumber) {
         Customer existingCustomer = customersService
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
         customersService.checkIfTheCustomerIsBlockedOrDeleted(existingCustomer);
 
-        String uniqueAccountNumber = UUID.randomUUID().toString().replaceAll("[^0-9]", "0").substring(0, 20);
+        String uniqueAccountNumber = UUID.randomUUID().toString().replaceAll("\\D", "0").substring(0, 20);
 
         SavingsAccount savingsAccount = new SavingsAccount(existingCustomer.getCustomerId(), uniqueAccountNumber, BigDecimal.valueOf(0),
                 Currency.RUB, Status.ACTIVE, LocalDateTime.now(), LocalDateTime.now());
 
         savingsAccountsRepository.save(savingsAccount);
         transactionToOpenSavingAccount(existingCustomer);
+        log.info("Открытие сберегательного счета. Номер счета: " + savingsAccount.getAccountNumber());
     }
 
     @Override
+    @Transactional
     public String closeAccountAndWithdrawMoneyThroughCashier(Integer passportSeries, Integer passportNumber, String accountNumber) {
         Customer existingCustomer = customersService
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
@@ -65,10 +72,12 @@ public class SavingsAccountsServiceImpl implements SavingsAccountsService {
         enrichSavingAccountForClosure(savingsAccountExisting);
         transactionToClose(existingCustomer.getCustomerId());
 
+        log.info("Закрытие сберегательного счета. Номер счета: " + savingsAccountExisting.getAccountNumber());
         return result;
     }
 
     @Override
+    @Transactional
     public String addMoneyToTheAccountThroughTheCashier(Integer passportSeries, Integer passportNumber,
                                                         String accountNumber, BigDecimal amount) {
         Customer existingCustomer = customersService
@@ -84,10 +93,14 @@ public class SavingsAccountsServiceImpl implements SavingsAccountsService {
         savingsAccountExisting.setBalance(newBalance);
         savingsAccountsRepository.save(savingsAccountExisting);
         transactionBalanceReplenishment(existingCustomer, savingsAccountExisting, amount);
+
+        log.info("Пополнение сберегательного счета через кассу. Номер счета: " + savingsAccountExisting.getAccountNumber()
+                + ", сумма: " + amount + savingsAccountExisting.getCurrency());
         return String.format("%.2f %s", savingsAccountExisting.getBalance(), savingsAccountExisting.getCurrency());
     }
 
     @Override
+    @Transactional
     public void transferFromCardToSavingsAccount(Integer passportSeries, Integer passportNumber,
                                                  String senderCardNumber, String recipientSavingsAccountNumber, BigDecimal amount) {
         Customer senderCustomer = customersService
@@ -110,6 +123,8 @@ public class SavingsAccountsServiceImpl implements SavingsAccountsService {
             moneyReceiptToTheAccountTransaction(recipientCustomer, senderCard, recipientAccountExisting, amount);
             cardsRepository.save(senderCard);
             savingsAccountsRepository.save(recipientAccountExisting);
+            log.info("Перевод денежных средств с карты на сберегательный счет. Номер счета карты: "
+                    + senderCard.getAccountNumber() + ", номер сберегательного счета: " + recipientAccountExisting.getAccountNumber());
         } else {
             throw new InsufficientFundsException("Недостаточно денежных средств! "
                     + "Пожалуйста, проверьте баланс на карте " + senderCard.getCardNumber()
@@ -118,6 +133,7 @@ public class SavingsAccountsServiceImpl implements SavingsAccountsService {
     }
 
     @Override
+    @Transactional
     public String checkBalance(Integer passportSeries, Integer passportNumber, String savingsAccountNumber) {
         Customer existingCustomer = customersService
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
@@ -126,10 +142,13 @@ public class SavingsAccountsServiceImpl implements SavingsAccountsService {
         SavingsAccount savingsAccountExisting = checkSavingAccountExists(existingCustomer, savingsAccountNumber);
         checkIfTheSavingAccountIsNotClosedOrBlocked(savingsAccountExisting);
         transactionBalanceRequest(existingCustomer, savingsAccountExisting);
+
+        log.info("Проверка баланса сберегательного счета. Номер счета: " + savingsAccountExisting.getAccountNumber());
         return String.format("Баланс: %.2f %s", savingsAccountExisting.getBalance(), savingsAccountExisting.getCurrency().toString());
     }
 
     @Override
+    @Transactional
     public void transferFromSavingsAccountToSavingsAccount(Integer passportSeries, Integer passportNumber,
                                                            String senderSavingsAccountNumber, String recipientSavingsAccountNumber, BigDecimal amount) {
         Customer senderCustomer = customersService
@@ -152,6 +171,9 @@ public class SavingsAccountsServiceImpl implements SavingsAccountsService {
             transactionReceivingFromAccountToAccount(recipientCustomer, accountSenderExists, recipientAccountExisting, amount);
             savingsAccountsRepository.save(accountSenderExists);
             savingsAccountsRepository.save(recipientAccountExisting);
+
+            log.info("Перевод между сберегательными счетами. Номер счета отправителя: " + accountSenderExists.getAccountNumber()
+                    + ", номер счета получателя: " + recipientAccountExisting.getAccountNumber() + ", сумма: " + amount + accountSenderExists.getCurrency());
         } else {
             throw new InsufficientFundsException("На сберегательном счете недостататочно денежных средств для совершения транзакции! " +
                     "Пожалуйста, проверьте баланс и попробуйте снова.");

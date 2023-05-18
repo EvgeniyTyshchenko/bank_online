@@ -9,7 +9,7 @@ import ru.bankonline.project.dto.CustomerDTO;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class CustomerValidatorTest {
+class CustomerValidatorTest {
 
     private static CustomerValidator customerValidator;
     private static CustomerDTO customerDTO;

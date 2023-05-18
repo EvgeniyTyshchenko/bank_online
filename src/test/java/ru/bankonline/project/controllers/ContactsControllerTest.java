@@ -1,7 +1,6 @@
 package ru.bankonline.project.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.modelmapper.ModelMapper;
@@ -9,27 +8,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import ru.bankonline.project.BankOnlineApplication;
 import ru.bankonline.project.dto.ContactDTO;
-import ru.bankonline.project.dto.CustomerDTO;
 import ru.bankonline.project.entity.Contact;
+import ru.bankonline.project.entity.Customer;
 import ru.bankonline.project.repositories.ContactsRepository;
+import ru.bankonline.project.repositories.CustomersRepository;
 import ru.bankonline.project.services.contactsservice.ContactsService;
 import ru.bankonline.project.utils.validators.ContactValidator;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
-@SpringBootTest
+@SpringBootTest(classes = BankOnlineApplication.class)
 @AutoConfigureMockMvc
-public class ContactsControllerTest {
+class ContactsControllerTest {
 
     @Mock
     private ContactsService contactsService;
@@ -37,47 +35,48 @@ public class ContactsControllerTest {
     private ContactValidator contactValidator;
     @Mock
     private ModelMapper modelMapper;
-    @Mock
+    @Autowired
+    private CustomersRepository customersRepository;
+    @Autowired
     private ContactsRepository contactsRepository;
     @Autowired
     private MockMvc mockMvc;
-    private static List<Contact> contacts;
-    private static List<ContactDTO> contactDTOs;
-    private static ObjectMapper objectMapper;
-
-    @BeforeAll
-    static void setUp() {
-        CustomerDTO customerDTO = new CustomerDTO();
-        customerDTO.setPassportSeries(6658);
-        customerDTO.setPassportNumber(895623);
-        customerDTO.setLastName("Шефер");
-        customerDTO.setFirstName("Станислав");
-        customerDTO.setPatronymic("Станиславович");
-        customerDTO.setBirthday("09.03.1991");
-        contactDTOs = new ArrayList<>(List.of(new ContactDTO("89054778899", "stanislaavv@yandex.ru")));
-        customerDTO.setContactDTO(contactDTOs.get(0));
-
-        contacts = new ArrayList<>(List.of(new Contact("89034551225", "test10@mail.ru")));
-        objectMapper = new ObjectMapper();
-    }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void shouldGetAllContactDetails() throws Exception {
-        when(contactsRepository.findByContacts()).thenReturn(contacts);
+        Contact contactOne = new Contact("89054778899", "stanislaavv@yandex.ru");
+        Contact contactTwo = new Contact("89034551225", "test10@mail.ru");
+
+        contactsRepository.save(contactOne);
+        contactsRepository.save(contactTwo);
 
         mockMvc.perform(get("/contacts/getAll"))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+                .andExpect(jsonPath("$[0].phoneNumber").value("89054778899"))
+                .andExpect(jsonPath("$[0].email").value("stanislaavv@yandex.ru"))
+                .andExpect(jsonPath("$[1].phoneNumber").value("89034551225"))
+                .andExpect(jsonPath("$[1].email").value("test10@mail.ru"));
     }
 
     @Test
-    void shouldUpdateContactDetailsWithInvalidData() throws Exception {
-        contactDTOs.get(0).setPhoneNumber("");
+    void shouldUpdateContactDetails() throws Exception {
+        Customer customer = new Customer();
+        customer.setPassportSeries(6658);
+        customer.setPassportNumber(895623);
+        Contact contact = new Contact("89054110023", "evgeniy1990@mail.ru");
+        customer.setContactDetails(contact);
 
-        MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.put("/contacts/series/6658/number/895623")
+        customersRepository.save(customer);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        ContactDTO contactDTO = new ContactDTO("89054110022", "evgeniy1991@mail.ru");
+
+        MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.put("/contacts/series/{series}/number/{number}",
+                        customer.getPassportSeries(), customer.getPassportNumber())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(contactDTOs.get(0)));
+                .content(objectMapper.writeValueAsString(contactDTO));
         mockMvc.perform(requestBuilder)
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isOk());
     }
 }

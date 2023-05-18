@@ -1,5 +1,6 @@
 package ru.bankonline.project.services;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,6 +13,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 
 import static org.mockito.Mockito.verify;
 
+@Slf4j
 @ExtendWith(MockitoExtension.class)
 class MailSenderTest {
 
@@ -34,5 +36,6 @@ class MailSenderTest {
         Assertions.assertArrayEquals(new String[]{emailTo}, mailMessage.getTo());
         Assertions.assertEquals(subject, mailMessage.getSubject());
         Assertions.assertEquals(message, mailMessage.getText());
+        log.info("Отправка электронного письма");
     }
 }

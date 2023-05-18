@@ -100,7 +100,6 @@ class CustomersServiceImplTest {
                 .getEmail(), "Регистрация в банке", expectedMessage);
         log.info(customer.toString());
     }
-    //---
 
     @Test
     void shouldReceiveTheCustomerAccordingToPassportData() {
@@ -119,7 +118,6 @@ class CustomersServiceImplTest {
             customersService.customerSearchByPassportSeriesAndNumber(newPassportSeries, newPassportNumber);
         });
     }
-    //---
 
     @Test
     void shouldBeAnExceptionWhenDeletingBlockedCustomer() {
@@ -182,7 +180,6 @@ class CustomersServiceImplTest {
                 "Для корректного выполнения операции, Вам необходимо снять/перевести ВСЕ денежные средства со своих счетов и/или карт.",
                 exception.getMessage());
     }
-    //---
 
     @Test
     void shouldUpdateCustomer() {
@@ -212,7 +209,6 @@ class CustomersServiceImplTest {
         Assertions.assertThrows(PassportDuplicateException.class, () -> customersService.updateCustomer(customerToUpdate.getPassportSeries(),
                 customerToUpdate.getPassportNumber(), customerToUpdate));
     }
-    //---
 
     @Test
     void shouldGetTheCustomerByCardNumber() {
@@ -232,7 +228,6 @@ class CustomersServiceImplTest {
             customersService.getCustomerByCardNumber(anyString());
         });
     }
-    //---
 
     @Test
     void shouldReceiveTheCustomerByAccountNumber() {
@@ -252,7 +247,6 @@ class CustomersServiceImplTest {
             customersService.getCustomerBySavingAccountNumber(anyString());
         });
     }
-    //---
 
     @Test
     void shouldCheckThatTheCustomerIsNotBlockedOrClosed() {

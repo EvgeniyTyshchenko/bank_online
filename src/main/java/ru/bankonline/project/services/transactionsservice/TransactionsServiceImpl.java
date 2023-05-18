@@ -2,6 +2,7 @@ package ru.bankonline.project.services.transactionsservice;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.bankonline.project.entity.Customer;
 import ru.bankonline.project.entity.Transaction;
 import ru.bankonline.project.constants.Currency;
@@ -27,6 +28,7 @@ public class TransactionsServiceImpl implements TransactionsService {
     }
 
     @Override
+    @Transactional
     public List<Transaction> getTransactionCustomer(Integer passportSeries, Integer passportNumber) {
         Customer customer = customersService.customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
         List<Transaction> transactions = transactionsRepository.findAllByCustomerId(customer.getCustomerId());

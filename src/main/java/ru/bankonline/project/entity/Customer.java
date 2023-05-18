@@ -13,6 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 @Getter
 @Setter
+@EqualsAndHashCode
 @ToString
 @Entity
 @Table(name = "customers")
@@ -96,5 +97,18 @@ public class Customer {
         this.contactDetails = contactDetails;
         this.cards = cards;
         this.savingsAccounts = savingsAccounts;
+    }
+
+    public Customer(Integer customerId, Integer passportSeries, Integer passportNumber, String lastName,
+                    String firstName, String patronymic, String birthday, Address address, Contact contactDetails) {
+        this.customerId = customerId;
+        this.passportSeries = passportSeries;
+        this.passportNumber = passportNumber;
+        this.lastName = lastName;
+        this.firstName = firstName;
+        this.patronymic = patronymic;
+        this.birthday = birthday;
+        this.address = address;
+        this.contactDetails = contactDetails;
     }
 }

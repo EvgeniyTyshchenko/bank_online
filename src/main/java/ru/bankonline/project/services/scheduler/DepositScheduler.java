@@ -1,7 +1,8 @@
 package ru.bankonline.project.services.scheduler;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.bankonline.project.entity.SavingsAccount;
 import ru.bankonline.project.entity.Transaction;
 import ru.bankonline.project.constants.Currency;
@@ -16,7 +17,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
-@Component
+@Service
 public class DepositScheduler {
 
     private final SavingsAccountsRepository savingsAccountsRepository;
@@ -27,6 +28,7 @@ public class DepositScheduler {
         this.transactionsRepository = transactionsRepository;
     }
 
+    @Transactional
     public void deposit() {
         List<SavingsAccount> savingsAccounts = savingsAccountsRepository.findAll();
         LocalDate currentDate = LocalDate.now();

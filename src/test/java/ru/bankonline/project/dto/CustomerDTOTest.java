@@ -58,6 +58,7 @@ class CustomerDTOTest {
         assertEquals(customer.getSavingsAccounts().get(0).getAccountNumber(), customerDTO
                 .getSavingsAccountDTO().get(0).getAccountNumber());
     }
+
     @Test
     void shouldConvertToDTOCustomer() {
         CustomerDTO customerDTO = CustomerDTO.convertToDTOCustomer(customer, modelMapper);

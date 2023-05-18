@@ -10,7 +10,7 @@ import ru.bankonline.project.dto.CustomerDTO;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class FullCustomerValidatorTest {
+class FullCustomerValidatorTest {
 
     private static final AddressValidator addressValidator = new AddressValidator();
     private static final ContactValidator contactValidator = new ContactValidator();

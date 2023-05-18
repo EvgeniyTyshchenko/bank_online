@@ -41,18 +41,18 @@ class CardDTOTest {
         List<Card> cards = new ArrayList<>(List.of(cardOne, cardTwo));
         List<CardDTO> cardDTOs = CardDTO.convertListCardsToDTO(cards, modelMapper);
 
-        assertEquals(cardDTOs.size(), 2);
+        assertEquals(2, cardDTOs.size());
 
-        assertEquals(cardDTOs.get(0).getCardNumber(), "555001444125336");
-        assertEquals(cardDTOs.get(0).getCvv(), "458");
-        assertEquals(cardDTOs.get(0).getAccountNumber(), "44500459963585225841");
-        assertEquals(cardDTOs.get(0).getBalance(), BigDecimal.ZERO);
-        assertEquals(cardDTOs.get(0).getCurrency(), Currency.RUB);
+        assertEquals("555001444125336", cardDTOs.get(0).getCardNumber());
+        assertEquals("458", cardDTOs.get(0).getCvv());
+        assertEquals("44500459963585225841", cardDTOs.get(0).getAccountNumber());
+        assertEquals(BigDecimal.ZERO, cardDTOs.get(0).getBalance());
+        assertEquals(Currency.RUB, cardDTOs.get(0).getCurrency());
 
-        assertEquals(cardDTOs.get(1).getCardNumber(), "4401255698523356");
-        assertEquals(cardDTOs.get(1).getCvv(), "875");
-        assertEquals(cardDTOs.get(1).getAccountNumber(), "22502366588887411159");
-        assertEquals(cardDTOs.get(1).getBalance(), BigDecimal.ZERO);
-        assertEquals(cardDTOs.get(1).getCurrency(), Currency.RUB);
+        assertEquals("4401255698523356", cardDTOs.get(1).getCardNumber());
+        assertEquals("875", cardDTOs.get(1).getCvv());
+        assertEquals("22502366588887411159", cardDTOs.get(1).getAccountNumber());
+        assertEquals(BigDecimal.ZERO, cardDTOs.get(1).getBalance());
+        assertEquals(Currency.RUB, cardDTOs.get(1).getCurrency());
     }
 }
