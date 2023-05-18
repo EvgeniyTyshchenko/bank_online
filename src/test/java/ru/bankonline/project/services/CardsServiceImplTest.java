@@ -183,9 +183,11 @@ class CardsServiceImplTest {
         String cardNumberCustomer = customer.getCards().get(0).getCardNumber();
         String cardNumberNewCustomer = newCustomer.getCards().get(0).getCardNumber();
         BigDecimal balanceCustomerMoreThanAcceptable = customer.getCards().get(0).getBalance().add(BigDecimal.valueOf(1_000));
+        Integer passportSeriesCustomer = customer.getPassportSeries();
+        Integer passportNumberCustomer = customer.getPassportNumber();
 
         Assertions.assertThrows(InsufficientFundsException.class,
-                () -> cardsService.transferBetweenCards(customer.getPassportSeries(), customer.getPassportNumber(),
+                () -> cardsService.transferBetweenCards(passportSeriesCustomer, passportNumberCustomer,
                         cardNumberCustomer, cardNumberNewCustomer, balanceCustomerMoreThanAcceptable));
     }
 
