@@ -17,4 +17,6 @@ public interface CustomersService {
     Customer getCustomerBySavingAccountNumber(String savingAccountNumber);
 
     void checkIfTheCustomerIsBlockedOrDeleted(Customer customer);
+
+    void saveCustomersRepository(Customer customer);
 }

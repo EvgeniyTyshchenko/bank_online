@@ -1,20 +1,21 @@
 package ru.bankonline.project.services.customersservice;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.bankonline.project.constants.Currency;
+import ru.bankonline.project.constants.TransactionType;
 import ru.bankonline.project.entity.Card;
 import ru.bankonline.project.entity.Customer;
 import ru.bankonline.project.entity.SavingsAccount;
-import ru.bankonline.project.entity.Transaction;
-import ru.bankonline.project.constants.Currency;
 import ru.bankonline.project.constants.Status;
-import ru.bankonline.project.constants.TransactionType;
-import ru.bankonline.project.repositories.CardsRepository;
+import ru.bankonline.project.entity.Transaction;
 import ru.bankonline.project.repositories.CustomersRepository;
-import ru.bankonline.project.repositories.SavingsAccountsRepository;
-import ru.bankonline.project.repositories.TransactionsRepository;
 import ru.bankonline.project.services.MailSender;
+import ru.bankonline.project.services.cardsservice.CardsService;
+import ru.bankonline.project.services.savingsaccountsservice.SavingsAccountsService;
+import ru.bankonline.project.services.transactionsservice.TransactionsService;
 import ru.bankonline.project.utils.exceptions.*;
 
 import java.math.BigDecimal;
@@ -28,26 +29,28 @@ import java.util.Optional;
 public class CustomersServiceImpl implements CustomersService {
 
     private final CustomersRepository customersRepository;
-    private final TransactionsRepository transactionsRepository;
-    private final CardsRepository cardsRepository;
-    private final SavingsAccountsRepository savingsAccountsRepository;
+    private final TransactionsService transactionsService;
+    private final CardsService cardsService;
+    private final SavingsAccountsService savingsAccountsService;
     private final MailSender mailSender;
 
-    public CustomersServiceImpl(CustomersRepository customersRepository, TransactionsRepository transactionsRepository,
-                                CardsRepository cardsRepository, SavingsAccountsRepository savingsAccountsRepository,
+    @Autowired
+    public CustomersServiceImpl(CustomersRepository customersRepository, TransactionsService transactionsService,
+                                CardsService cardsService, SavingsAccountsService savingsAccountsService,
                                 MailSender mailSender) {
         this.customersRepository = customersRepository;
-        this.transactionsRepository = transactionsRepository;
-        this.cardsRepository = cardsRepository;
-        this.savingsAccountsRepository = savingsAccountsRepository;
+        this.transactionsService = transactionsService;
+        this.cardsService = cardsService;
+        this.savingsAccountsService = savingsAccountsService;
         this.mailSender = mailSender;
     }
+
 
     @Override
     @Transactional
     public void addNewCustomer(Customer customer) {
         isPassportExists(customer.getPassportSeries(), customer.getPassportNumber());
-        enrichCustomer(customer);
+        enrichCustomerToActivate(customer);
         customersRepository.save(customer);
         transactionToRegisterNewCustomer(customer.getCustomerId());
 
@@ -72,8 +75,9 @@ public class CustomersServiceImpl implements CustomersService {
         Customer customer = customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
         checkIfTheCustomerIsBlockedOrDeleted(customer);
 
-        List<Card> cards = getCardsByCustomerId(customer.getCustomerId());
-        List<SavingsAccount> savingsAccounts = getSavingsAccountsByCustomerId(customer.getCustomerId());
+        List<Card> cards = cardsService.findByCustomerIdToCardsRepository(customer.getCustomerId());
+        List<SavingsAccount> savingsAccounts = savingsAccountsService
+                .findByCustomerIdToSavingsAccountsRepository(customer.getCustomerId());;
 
         boolean hasBalanceOnCard = checkIfHasBalanceOnCard(cards);
         boolean hasBalanceOnSavingsAccount = checkIfHasBalanceOnSavingsAccount(savingsAccounts);
@@ -86,7 +90,7 @@ public class CustomersServiceImpl implements CustomersService {
             closeCards(cards);
             closeSavingsAccounts(savingsAccounts);
         }
-        closeCustomer(customer);
+        enrichCustomerToClose(customer);
         transactionToDeleteCustomer(customer.getCustomerId());
 
         log.info("Клиент {} удален", customer.getLastName() + " "
@@ -133,6 +137,11 @@ public class CustomersServiceImpl implements CustomersService {
         }
     }
 
+    @Override
+    public void saveCustomersRepository(Customer customer) {
+        customersRepository.save(customer);
+    }
+
     private boolean checkIfHasBalanceOnCard(List<Card> cards) {
         for (Card card : cards) {
             if (card.getBalance().compareTo(BigDecimal.ZERO) > 0) {
@@ -157,7 +166,7 @@ public class CustomersServiceImpl implements CustomersService {
         for (Card card : cards) {
             card.setStatus(Status.CLOSED);
             card.setUpdateDate(LocalDateTime.now());
-            cardsRepository.save(card);
+            cardsService.saveCardsRepository(card);
         }
     }
 
@@ -165,11 +174,11 @@ public class CustomersServiceImpl implements CustomersService {
         for (SavingsAccount savingsAccount : savingsAccounts) {
             savingsAccount.setStatus(Status.CLOSED);
             savingsAccount.setUpdateDate(LocalDateTime.now());
-            savingsAccountsRepository.save(savingsAccount);
+            savingsAccountsService.saveRepositorySavingsAccounts(savingsAccount);
         }
     }
 
-    private void closeCustomer(Customer customer) {
+    private void enrichCustomerToClose(Customer customer) {
         customer.setStatus(Status.CLOSED);
         customer.setUpdateDate(LocalDateTime.now());
         customersRepository.save(customer);
@@ -193,29 +202,21 @@ public class CustomersServiceImpl implements CustomersService {
         }
     }
 
-    private List<Card> getCardsByCustomerId(Integer customerId) {
-        return cardsRepository.findByCustomerId(customerId);
-    }
-
-    private List<SavingsAccount> getSavingsAccountsByCustomerId(Integer customerId) {
-        return savingsAccountsRepository.findByCustomerId(customerId);
-    }
-
-    private void transactionToRegisterNewCustomer(Integer customerId) {
-        Transaction transaction = new Transaction(customerId, "[registration]", "[registration]",
-                BigDecimal.valueOf(0), Currency.RUB, TransactionType.REGISTERCUSTOMER, LocalDateTime.now());
-        transactionsRepository.save(transaction);
-    }
-
-    private void transactionToDeleteCustomer(Integer customerId) {
-        Transaction transaction = new Transaction(customerId, "[removal]", "[removal]",
-                BigDecimal.valueOf(0), Currency.RUB, TransactionType.DELETECUSTOMER, LocalDateTime.now());
-        transactionsRepository.save(transaction);
-    }
-
-    private static void enrichCustomer(Customer customer) {
+    private static void enrichCustomerToActivate(Customer customer) {
         customer.setStatus(Status.ACTIVE);
         customer.setCreateDate(LocalDateTime.now());
         customer.setUpdateDate(LocalDateTime.now());
+    }
+
+    public void transactionToRegisterNewCustomer(Integer customerId) {
+        Transaction transaction = new Transaction(customerId, "[registration]", "[registration]",
+                BigDecimal.valueOf(0), Currency.RUB, TransactionType.REGISTERCUSTOMER, LocalDateTime.now());
+        transactionsService.saveTransactionsRepository(transaction);
+    }
+
+    public void transactionToDeleteCustomer(Integer customerId) {
+        Transaction transaction = new Transaction(customerId, "[removal]", "[removal]",
+                BigDecimal.valueOf(0), Currency.RUB, TransactionType.DELETECUSTOMER, LocalDateTime.now());
+        transactionsService.saveTransactionsRepository(transaction);
     }
 }

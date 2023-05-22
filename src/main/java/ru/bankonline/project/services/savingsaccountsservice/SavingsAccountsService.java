@@ -4,6 +4,7 @@ import ru.bankonline.project.entity.Customer;
 import ru.bankonline.project.entity.SavingsAccount;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public interface SavingsAccountsService {
     void openSavingAccountToTheCustomer(Integer passportSeries, Integer passportNumber);
@@ -13,9 +14,6 @@ public interface SavingsAccountsService {
     String addMoneyToTheAccountThroughTheCashier(Integer passportSeries, Integer passportNumber,
                                                  String accountNumber, BigDecimal amount);
 
-    void transferFromCardToSavingsAccount(Integer passportSeries, Integer passportNumber,
-                                          String senderCardNumber, String recipientSavingsAccountNumber, BigDecimal amount);
-
     String checkBalance(Integer passportSeries, Integer passportNumber, String savingsAccountNumber);
 
     void transferFromSavingsAccountToSavingsAccount(Integer passportSeries, Integer passportNumber,
@@ -24,4 +22,12 @@ public interface SavingsAccountsService {
     void checkIfTheSavingAccountIsNotClosedOrBlocked(SavingsAccount savingsAccount);
 
     SavingsAccount checkSavingAccountExists(Customer customer, String accountNumber);
+
+    void checkIfThereIsMoneyOnTheSavingAccount(SavingsAccount savingsAccount);
+
+    void saveRepositorySavingsAccounts(SavingsAccount savingsAccount);
+
+    List<SavingsAccount> findAllToSavingsAccountsRepository();
+
+    List<SavingsAccount> findByCustomerIdToSavingsAccountsRepository(Integer customerId);
 }

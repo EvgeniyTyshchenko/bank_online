@@ -1,12 +1,12 @@
 package ru.bankonline.project.services.contactsservice;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.bankonline.project.entity.Contact;
 import ru.bankonline.project.entity.Customer;
 import ru.bankonline.project.repositories.ContactsRepository;
-import ru.bankonline.project.repositories.CustomersRepository;
 import ru.bankonline.project.services.customersservice.CustomersService;
 import ru.bankonline.project.utils.exceptions.NotFoundInBaseException;
 
@@ -18,12 +18,11 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class ContactsServiceImpl implements ContactsService {
 
-    private final CustomersRepository customersRepository;
     private final ContactsRepository contactsRepository;
     private final CustomersService customersService;
 
-    public ContactsServiceImpl(CustomersRepository customersRepository, ContactsRepository contactsRepository, CustomersService customersService) {
-        this.customersRepository = customersRepository;
+    @Autowired
+    public ContactsServiceImpl(ContactsRepository contactsRepository, CustomersService customersService) {
         this.contactsRepository = contactsRepository;
         this.customersService = customersService;
     }
@@ -46,7 +45,7 @@ public class ContactsServiceImpl implements ContactsService {
         existingCustomer.getContactDetails().setEmail(contact.getEmail());
 
         existingCustomer.setUpdateDate(LocalDateTime.now());
-        customersRepository.save(existingCustomer);
+        customersService.saveCustomersRepository(existingCustomer);
         log.info(existingCustomer.toString());
     }
 }

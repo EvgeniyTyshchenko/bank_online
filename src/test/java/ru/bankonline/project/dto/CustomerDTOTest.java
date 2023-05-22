@@ -39,8 +39,8 @@ class CustomerDTOTest {
     }
 
     @Test
-    void shouldConvertToCustomer() {
-        Customer customer = CustomerDTO.convertToCustomer(customerDTO, modelMapper);
+    void shouldConvertToCustomerWithAddressAndContacts() {
+        Customer customer = CustomerDTO.convertToCustomerWithAddressAndContacts(customerDTO, modelMapper);
 
         assertEquals(customerDTO.getPassportNumber(), customer.getPassportNumber());
         assertEquals(customerDTO.getLastName(), customer.getLastName());
@@ -49,8 +49,8 @@ class CustomerDTOTest {
     }
 
     @Test
-    void shouldConvertToDTOCustomerCardsAndAccounts() {
-        CustomerDTO customerDTO = CustomerDTO.convertToDTOCustomerCardsAndAccounts(customer, modelMapper);
+    void shouldConvertToDTOTheEntireCustomerAndCardsAndAccounts() {
+        CustomerDTO customerDTO = CustomerDTO.convertToDTOTheEntireCustomerAndCardsAndAccounts(customer, modelMapper);
 
         assertEquals(customer.getPassportNumber(), customerDTO.getPassportNumber());
         assertEquals(customer.getLastName(), customerDTO.getLastName());
@@ -62,8 +62,8 @@ class CustomerDTOTest {
     }
 
     @Test
-    void shouldConvertToDTOCustomer() {
-        CustomerDTO customerDTO = CustomerDTO.convertToDTOCustomer(customer, modelMapper);
+    void shouldConvertToDTOCustomerWithAddressAndContacts() {
+        CustomerDTO customerDTO = CustomerDTO.convertToDTOCustomerWithAddressAndContacts(customer, modelMapper);
 
         assertEquals(customer.getPassportSeries(), customerDTO.getPassportSeries());
         assertEquals(customer.getFirstName(), customerDTO.getFirstName());

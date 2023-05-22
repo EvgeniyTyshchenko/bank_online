@@ -1,14 +1,15 @@
 package ru.bankonline.project.services.scheduler;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.bankonline.project.entity.SavingsAccount;
 import ru.bankonline.project.entity.Transaction;
 import ru.bankonline.project.constants.Currency;
 import ru.bankonline.project.constants.TransactionType;
-import ru.bankonline.project.repositories.SavingsAccountsRepository;
-import ru.bankonline.project.repositories.TransactionsRepository;
+import ru.bankonline.project.services.savingsaccountsservice.SavingsAccountsService;
+import ru.bankonline.project.services.transactionsservice.TransactionsService;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -20,17 +21,18 @@ import java.util.List;
 @Service
 public class DepositScheduler {
 
-    private final SavingsAccountsRepository savingsAccountsRepository;
-    private final TransactionsRepository transactionsRepository;
+    private final SavingsAccountsService savingsAccountsService;
+    private final TransactionsService transactionsService;
 
-    public DepositScheduler(SavingsAccountsRepository savingsAccountsRepository, TransactionsRepository transactionsRepository) {
-        this.savingsAccountsRepository = savingsAccountsRepository;
-        this.transactionsRepository = transactionsRepository;
+    @Autowired
+    public DepositScheduler(SavingsAccountsService savingsAccountsService, TransactionsService transactionsService) {
+        this.savingsAccountsService = savingsAccountsService;
+        this.transactionsService = transactionsService;
     }
 
     @Transactional
     public void deposit() {
-        List<SavingsAccount> savingsAccounts = savingsAccountsRepository.findAll();
+        List<SavingsAccount> savingsAccounts = savingsAccountsService.findAllToSavingsAccountsRepository();
         LocalDate currentDate = LocalDate.now();
 
         for (SavingsAccount account : savingsAccounts) {
@@ -43,7 +45,7 @@ public class DepositScheduler {
                 BigDecimal amountAccruedInterest = balance.multiply(interestRate).divide(new BigDecimal("12"), 2, RoundingMode.HALF_UP);
                 account.setBalance(balance.add(amountAccruedInterest));
                 account.setUpdateDate(LocalDateTime.now());
-                savingsAccountsRepository.save(account);
+                savingsAccountsService.saveRepositorySavingsAccounts(account);
                 transactionInterestAccruals(account.getCustomerId(), account, amountAccruedInterest);
                 log.info("На номер сберегательного счета {} произведено начисление процентов в размере {} RUB",
                         account.getAccountNumber(), amountAccruedInterest);
@@ -54,6 +56,6 @@ public class DepositScheduler {
     private void transactionInterestAccruals(Integer customerId, SavingsAccount savingsAccount, BigDecimal amountAccruedInterest) {
         Transaction transaction = new Transaction(customerId, "[BANK]", savingsAccount.getAccountNumber(),
                 amountAccruedInterest, Currency.RUB, TransactionType.CAPITALIZATION, LocalDateTime.now());
-        transactionsRepository.save(transaction);
+        transactionsService.saveTransactionsRepository(transaction);
     }
 }

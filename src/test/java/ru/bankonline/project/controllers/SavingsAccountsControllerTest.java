@@ -69,7 +69,7 @@ class SavingsAccountsControllerTest {
     @Test
     void shouldDeleteTheSavingAccountFromTheCustomer() throws Exception {
         String result = "Со сберегательного счета произведено полное списание денежных средств. " +
-                "Клиенту требуется получить деньги на кассе.";
+                "Клиенту требуется получить деньги в кассе.";
         customersRepository.save(customer);
 
         mockMvc.perform(patch("/savingsAccounts/series/{series}/number/{number}/close/{accountNumber}",

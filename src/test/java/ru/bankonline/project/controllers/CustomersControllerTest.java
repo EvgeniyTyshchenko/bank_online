@@ -93,7 +93,7 @@ class CustomersControllerTest {
 
     @Test
     void shouldAddNewCustomer() throws Exception {
-        CustomerDTO customerDTO = CustomerDTO.convertToDTOCustomer(customer, modelMapper);
+        CustomerDTO customerDTO = CustomerDTO.convertToDTOCustomerWithAddressAndContacts(customer, modelMapper);
 
         mockMvc.perform(post("/customers/add")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -108,7 +108,7 @@ class CustomersControllerTest {
                 new Address("Россия", "Краснодар", "ул.Московская", "12/3", 204),
                 new Contact("89887444565", "eugenityschenko@yandex.ru"));
 
-        CustomerDTO newCustomerDTO = CustomerDTO.convertToDTOCustomer(newCustomer, modelMapper);
+        CustomerDTO newCustomerDTO = CustomerDTO.convertToDTOCustomerWithAddressAndContacts(newCustomer, modelMapper);
 
         mockMvc.perform(patch("/customers/series/{series}/number/{number}",
                         customer.getPassportSeries(), customer.getPassportNumber())

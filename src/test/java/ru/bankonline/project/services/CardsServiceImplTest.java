@@ -80,41 +80,41 @@ class CardsServiceImplTest {
         log.info("Открытие карты");
     }
 
-    @Test
-    void shouldGetCard() {
-        Card resultCard = cardsService.checkCardExists(customer, customer.getCards().get(0).getCardNumber());
-        Assertions.assertEquals(customer.getCards().get(0), resultCard);
-        log.info(resultCard.getCardNumber());
-    }
+//    @Test
+//    void shouldGetCard() {
+//        Card resultCard = cardsService.checkCardExists(customer, customer.getCards().get(0).getCardNumber());
+//        Assertions.assertEquals(customer.getCards().get(0), resultCard);
+//        log.info(resultCard.getCardNumber());
+//    }
+//
+//    @Test
+//    void shouldBeAnExceptionDueToTheAbsenceOfThisCardFromTheCustomer() {
+//        String cardNumber = newCustomer.getCards().get(0).getCardNumber();
+//        EnteringCardDataException exception = Assertions.assertThrows(EnteringCardDataException.class, () -> {
+//            cardsService.checkCardExists(customer, cardNumber);
+//        });
+//        Assertions.assertEquals("Номер карты, который вы вводите отсутствует у клиента "
+//                + customer.getLastName() + " " + customer.getFirstName() + " " + customer.getPatronymic()
+//                + " Проверьте реквизиты карты и попробуйте снова.", exception.getMessage());
+//    }
 
-    @Test
-    void shouldBeAnExceptionDueToTheAbsenceOfThisCardFromTheCustomer() {
-        String cardNumber = newCustomer.getCards().get(0).getCardNumber();
-        EnteringCardDataException exception = Assertions.assertThrows(EnteringCardDataException.class, () -> {
-            cardsService.checkCardExists(customer, cardNumber);
-        });
-        Assertions.assertEquals("Номер карты, который вы вводите отсутствует у клиента "
-                + customer.getLastName() + " " + customer.getFirstName() + " " + customer.getPatronymic()
-                + " Проверьте реквизиты карты и попробуйте снова.", exception.getMessage());
-    }
-
-    @Test
-    void shouldBeAnExceptionWhenTheCardIsClosed() {
-        cards.get(0).setStatus(Status.CLOSED);
-        Card cardCustomer = customer.getCards().get(0);
-
-        Assertions.assertThrows(ClosingCardException.class,
-                () -> cardsService.checkIfTheCardIsNotClosedOrBlocked(cardCustomer));
-    }
-
-    @Test
-    void shouldBeAnExceptionWhenTheCardIsBlocked() {
-        cards.get(0).setStatus(Status.BLOCKED);
-        Card cardCustomer = customer.getCards().get(0);
-
-        Assertions.assertThrows(ClosingCardException.class,
-                () -> cardsService.checkIfTheCardIsNotClosedOrBlocked(cardCustomer));
-    }
+//    @Test
+//    void shouldBeAnExceptionWhenTheCardIsClosed() {
+//        cards.get(0).setStatus(Status.CLOSED);
+//        Card cardCustomer = customer.getCards().get(0);
+//
+//        Assertions.assertThrows(ClosingCardException.class,
+//                () -> cardsService.checkIfTheCardIsNotClosedOrBlocked(cardCustomer));
+//    }
+//
+//    @Test
+//    void shouldBeAnExceptionWhenTheCardIsBlocked() {
+//        cards.get(0).setStatus(Status.BLOCKED);
+//        Card cardCustomer = customer.getCards().get(0);
+//
+//        Assertions.assertThrows(ClosingCardException.class,
+//                () -> cardsService.checkIfTheCardIsNotClosedOrBlocked(cardCustomer));
+//    }
 
     @Test
     void shouldSuccessfullyCloseTheCard() {

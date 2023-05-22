@@ -39,14 +39,20 @@ public class CustomerDTO implements DTO {
         this.contactDTO = contactDTO;
     }
 
-    public static Customer convertToCustomer(CustomerDTO customerDTO, ModelMapper modelMapper) {
+    public static Customer convertToCustomerWithAddressAndContacts(CustomerDTO customerDTO, ModelMapper modelMapper) {
         return new Customer(customerDTO.passportSeries, customerDTO.passportNumber,
                 customerDTO.lastName, customerDTO.firstName, customerDTO.patronymic,
                 customerDTO.birthday, AddressDTO.convertToAddress(customerDTO.getAddressDTO(), modelMapper),
                 ContactDTO.convertToContact(customerDTO.getContactDTO(),modelMapper));
     }
 
-    public static CustomerDTO convertToDTOCustomerCardsAndAccounts(Customer customer, ModelMapper modelMapper) {
+    public static Customer convertToCustomer(CustomerDTO customerDTO, ModelMapper modelMapper) {
+        return new Customer(customerDTO.passportSeries, customerDTO.passportNumber,
+                customerDTO.lastName, customerDTO.firstName, customerDTO.patronymic,
+                customerDTO.birthday);
+    }
+
+    public static CustomerDTO convertToDTOTheEntireCustomerAndCardsAndAccounts(Customer customer, ModelMapper modelMapper) {
         return new CustomerDTO(customer.getPassportSeries(), customer.getPassportNumber(),
                 customer.getLastName(), customer.getFirstName(), customer.getPatronymic(),
                 customer.getBirthday(), AddressDTO.convertToAddressDTO(customer.getAddress(), modelMapper),
@@ -55,7 +61,7 @@ public class CustomerDTO implements DTO {
                 SavingsAccountDTO.convertSavingsAccountToDTO(customer.getSavingsAccounts(), modelMapper));
     }
 
-    public static CustomerDTO convertToDTOCustomer(Customer customer, ModelMapper modelMapper) {
+    public static CustomerDTO convertToDTOCustomerWithAddressAndContacts(Customer customer, ModelMapper modelMapper) {
         return new CustomerDTO(customer.getPassportSeries(), customer.getPassportNumber(),
                 customer.getLastName(), customer.getFirstName(), customer.getPatronymic(),
                 customer.getBirthday(), AddressDTO.convertToAddressDTO(customer.getAddress(), modelMapper),

@@ -83,4 +83,14 @@ public class Customer {
         this.address = address;
         this.contactDetails = contactDetails;
     }
+
+    public Customer(Integer passportSeries, Integer passportNumber, String lastName, String firstName,
+                    String patronymic, String birthday) {
+        this.passportSeries = passportSeries;
+        this.passportNumber = passportNumber;
+        this.lastName = lastName;
+        this.firstName = firstName;
+        this.patronymic = patronymic;
+        this.birthday = birthday;
+    }
 }

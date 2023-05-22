@@ -87,7 +87,7 @@ class ControllerAdvisorTest {
         customersRepository.save(customer);
 
         String errorMessage = "Клиент с такими серией и номером паспорта уже существует!";
-        CustomerDTO customerDTO = CustomerDTO.convertToDTOCustomer(customer, modelMapper);
+        CustomerDTO customerDTO = CustomerDTO.convertToDTOCustomerWithAddressAndContacts(customer, modelMapper);
 
         mockMvc.perform(post("/customers/add")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -106,7 +106,7 @@ class ControllerAdvisorTest {
                 new Address("Россия", "Краснодар", "ул.Мира", "12/1", 12),
                 new Contact("89885551245", "eugenity1994@yandex.ru"));
 
-        CustomerDTO newCustomerDTO = CustomerDTO.convertToDTOCustomer(newCustomer, modelMapper);
+        CustomerDTO newCustomerDTO = CustomerDTO.convertToDTOCustomerWithAddressAndContacts(newCustomer, modelMapper);
 
         mockMvc.perform(patch("/customers/series/{series}/number/{number}",
                         customer.getPassportSeries(), customer.getPassportNumber())
@@ -265,7 +265,7 @@ class ControllerAdvisorTest {
                 new Address("Россия", "Кисловодск", "ул.Первая", "11/Б", 3),
                 new Contact("89880004575", "petrivanoov@yandex.ru"));
 
-        CustomerDTO customerDTO = CustomerDTO.convertToDTOCustomer(customerToUpdate, modelMapper);
+        CustomerDTO customerDTO = CustomerDTO.convertToDTOCustomerWithAddressAndContacts(customerToUpdate, modelMapper);
 
         String errorMessage = "Паспорт с указанными серией и номером уже есть в базе.";
 

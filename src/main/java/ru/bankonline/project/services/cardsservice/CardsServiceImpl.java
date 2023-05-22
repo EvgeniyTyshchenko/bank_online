@@ -2,22 +2,26 @@ package ru.bankonline.project.services.cardsservice;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.math3.random.RandomDataGenerator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.bankonline.project.entity.Card;
 import ru.bankonline.project.entity.Customer;
+import ru.bankonline.project.entity.SavingsAccount;
 import ru.bankonline.project.entity.Transaction;
 import ru.bankonline.project.constants.Currency;
 import ru.bankonline.project.constants.Status;
 import ru.bankonline.project.constants.TransactionType;
 import ru.bankonline.project.repositories.CardsRepository;
-import ru.bankonline.project.repositories.TransactionsRepository;
 import ru.bankonline.project.services.MailSender;
 import ru.bankonline.project.services.customersservice.CustomersService;
+import ru.bankonline.project.services.savingsaccountsservice.SavingsAccountsService;
+import ru.bankonline.project.services.transactionsservice.TransactionsService;
 import ru.bankonline.project.utils.exceptions.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -26,15 +30,18 @@ import java.util.UUID;
 public class CardsServiceImpl implements CardsService {
 
     private final CardsRepository cardsRepository;
-    private final TransactionsRepository transactionsRepository;
     private final CustomersService customersService;
+    private final TransactionsService transactionsService;
+    private final SavingsAccountsService savingsAccountsService;
     private final MailSender mailSender;
 
-    public CardsServiceImpl(CardsRepository cardsRepository, TransactionsRepository transactionsRepository,
-                            CustomersService customersService, MailSender mailSender) {
+    @Autowired
+    public CardsServiceImpl(CardsRepository cardsRepository, CustomersService customersService,
+                            TransactionsService transactionsService, SavingsAccountsService savingsAccountsService, MailSender mailSender) {
         this.cardsRepository = cardsRepository;
-        this.transactionsRepository = transactionsRepository;
         this.customersService = customersService;
+        this.transactionsService = transactionsService;
+        this.savingsAccountsService = savingsAccountsService;
         this.mailSender = mailSender;
     }
 
@@ -166,6 +173,39 @@ public class CardsServiceImpl implements CardsService {
     }
 
     @Override
+    @Transactional
+    public void transferFromCardToSavingsAccount(Integer passportSeries, Integer passportNumber,
+                                                 String senderCardNumber, String recipientSavingsAccountNumber, BigDecimal amount) {
+        Customer senderCustomer = customersService
+                .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
+        customersService.checkIfTheCustomerIsBlockedOrDeleted(senderCustomer);
+
+        Card senderCard = checkCardExists(senderCustomer, senderCardNumber);
+        checkIfTheCardIsNotClosedOrBlocked(senderCard);
+
+        Customer recipientCustomer = customersService.getCustomerBySavingAccountNumber(recipientSavingsAccountNumber);
+        SavingsAccount recipientAccountExisting = savingsAccountsService.checkSavingAccountExists(recipientCustomer, recipientSavingsAccountNumber);
+        savingsAccountsService.checkIfTheSavingAccountIsNotClosedOrBlocked(recipientAccountExisting);
+        savingsAccountsService.checkIfThereIsMoneyOnTheSavingAccount(recipientAccountExisting);
+
+        if (senderCard.getBalance().compareTo(amount) >= 0) {
+            senderCard.setBalance(senderCard.getBalance().subtract(amount));
+            moneySendingToTheAccountTransaction(senderCustomer, senderCard, recipientAccountExisting, amount);
+
+            recipientAccountExisting.setBalance(recipientAccountExisting.getBalance().add(amount));
+            moneyReceiptToTheAccountTransaction(recipientCustomer, senderCard, recipientAccountExisting, amount);
+            cardsRepository.save(senderCard);
+            savingsAccountsService.saveRepositorySavingsAccounts(recipientAccountExisting);
+            log.info("Перевод денежных средств с карты на сберегательный счет. Номер счета карты: "
+                    + senderCard.getAccountNumber() + ", номер сберегательного счета: " + recipientAccountExisting.getAccountNumber());
+        } else {
+            throw new InsufficientFundsException("Недостаточно денежных средств! "
+                    + "Пожалуйста, проверьте баланс на карте " + senderCard.getCardNumber()
+                    + " и попробуйте снова.");
+        }
+    }
+
+    @Override
     public Card getCardDetails(Integer passportSeries, Integer passportNumber, String cardNumber) {
         Customer existingCustomer = customersService
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
@@ -176,7 +216,16 @@ public class CardsServiceImpl implements CardsService {
     }
 
     @Override
-    public Card checkCardExists(Customer customer, String cardNumber) {
+    public void saveCardsRepository(Card card) {
+        cardsRepository.save(card);
+    }
+
+    @Override
+    public List<Card> findByCustomerIdToCardsRepository(Integer customerId) {
+        return cardsRepository.findByCustomerId(customerId);
+    }
+
+    private Card checkCardExists(Customer customer, String cardNumber) {
         for (Card card : customer.getCards()) {
             if (card.getCardNumber().equals(cardNumber)) {
                 return card;
@@ -187,8 +236,7 @@ public class CardsServiceImpl implements CardsService {
                 + " Проверьте реквизиты карты и попробуйте снова.");
     }
 
-    @Override
-    public void checkIfTheCardIsNotClosedOrBlocked(Card card) {
+    private void checkIfTheCardIsNotClosedOrBlocked(Card card) {
         if (card.getStatus() == Status.CLOSED || card.getStatus() == Status.BLOCKED) {
             throw new ClosingCardException("Данная карта закрыта или заблокирована! " +
                     "Убедитесь, что Вы ввели правильные реквизиты карты!");
@@ -212,13 +260,13 @@ public class CardsServiceImpl implements CardsService {
     private void moneySendingToTheCardTransaction(Customer senderCustomer, Card senderCard, Card recipientCard, BigDecimal amount) {
         Transaction transaction = new Transaction(senderCustomer.getCustomerId(), senderCard.getAccountNumber(), recipientCard.getAccountNumber(),
                 amount, senderCard.getCurrency(), TransactionType.OUTTRANSFER, LocalDateTime.now());
-        transactionsRepository.save(transaction);
+        transactionsService.saveTransactionsRepository(transaction);
     }
 
     private void moneyReceiptToTheCardTransaction(Customer recipientCustomer, Card senderCard, Card recipientCard, BigDecimal amount) {
         Transaction transaction = new Transaction(recipientCustomer.getCustomerId(), senderCard.getAccountNumber(), recipientCard.getAccountNumber(),
                 amount, senderCard.getCurrency(), TransactionType.INTRANSFER, LocalDateTime.now());
-        transactionsRepository.save(transaction);
+        transactionsService.saveTransactionsRepository(transaction);
     }
 
     private void enrichCardForUnlock(Card card) {
@@ -242,31 +290,43 @@ public class CardsServiceImpl implements CardsService {
     private void transactionToClose(Integer customerId) {
         Transaction transaction = new Transaction(customerId, "[closure]", "[closure]",
                 BigDecimal.valueOf(0), Currency.RUB, TransactionType.CLOSECARD, LocalDateTime.now());
-        transactionsRepository.save(transaction);
+        transactionsService.saveTransactionsRepository(transaction);
     }
 
     private void transactionToUnlock(Integer customerId, Card card) {
         Transaction transaction = new Transaction(customerId, "[unblocking]", "[unblocking]",
                 card.getBalance(), Currency.RUB, TransactionType.UNLOCKINGCARD, LocalDateTime.now());
-        transactionsRepository.save(transaction);
+        transactionsService.saveTransactionsRepository(transaction);
     }
 
     private void transactionToBlock(Integer customerId, Card card) {
         Transaction transaction = new Transaction(customerId, "[blocking]", "[blocking]",
                 card.getBalance(), Currency.RUB, TransactionType.BLOCKINGCARD, LocalDateTime.now());
-        transactionsRepository.save(transaction);
+        transactionsService.saveTransactionsRepository(transaction);
     }
 
     private void transactionToOpenCard(Customer customer) {
         Transaction transaction = new Transaction(customer.getCustomerId(), "[discovery]", "[discovery]",
                 BigDecimal.valueOf(0), Currency.RUB, TransactionType.OPENCARD, LocalDateTime.now());
-        transactionsRepository.save(transaction);
+        transactionsService.saveTransactionsRepository(transaction);
     }
 
     private void transactionBalanceRequest(Customer customer, Card card) {
         Transaction transaction = new Transaction(customer.getCustomerId(), "[card balance request]", "[card balance request]",
                 card.getBalance(), Currency.RUB, TransactionType.CHECKBALANCE, LocalDateTime.now());
-        transactionsRepository.save(transaction);
+        transactionsService.saveTransactionsRepository(transaction);
+    }
+
+    private void moneySendingToTheAccountTransaction(Customer senderCustomer, Card senderCard, SavingsAccount recipientAccount, BigDecimal amount) {
+        Transaction transaction = new Transaction(senderCustomer.getCustomerId(), senderCard.getAccountNumber(), recipientAccount.getAccountNumber(),
+                amount, senderCard.getCurrency(), TransactionType.OUTTRANSFER, LocalDateTime.now());
+        transactionsService.saveTransactionsRepository(transaction);
+    }
+
+    private void moneyReceiptToTheAccountTransaction(Customer recipientCustomer, Card senderCard, SavingsAccount recipientAccount, BigDecimal amount) {
+        Transaction transaction = new Transaction(recipientCustomer.getCustomerId(), senderCard.getAccountNumber(), recipientAccount.getAccountNumber(),
+                amount, senderCard.getCurrency(), TransactionType.INTRANSFER, LocalDateTime.now());
+        transactionsService.saveTransactionsRepository(transaction);
     }
 
     private String createRandomThreeDigitNumber() {

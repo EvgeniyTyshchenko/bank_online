@@ -1,6 +1,7 @@
 package ru.bankonline.project.services.transactionsservice;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.bankonline.project.entity.Customer;
@@ -22,6 +23,7 @@ public class TransactionsServiceImpl implements TransactionsService {
     private final TransactionsRepository transactionsRepository;
     private final CustomersService customersService;
 
+    @Autowired
     public TransactionsServiceImpl(TransactionsRepository transactionsRepository, CustomersService customersService) {
         this.transactionsRepository = transactionsRepository;
         this.customersService = customersService;
@@ -41,9 +43,14 @@ public class TransactionsServiceImpl implements TransactionsService {
         return transactions;
     }
 
+    @Override
+    public void saveTransactionsRepository(Transaction transaction) {
+        transactionsRepository.save(transaction);
+    }
+
     private void transactionCheckingTheList(Customer customer) {
         Transaction transaction = new Transaction(customer.getCustomerId(), "[general request]", "[general request]",
                 BigDecimal.valueOf(0), Currency.RUB, TransactionType.CHECKTRANSACTIONLIST, LocalDateTime.now());
-        transactionsRepository.save(transaction);
+        saveTransactionsRepository(transaction);
     }
 }

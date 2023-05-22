@@ -1,12 +1,12 @@
 package ru.bankonline.project.services.addressesservice;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.bankonline.project.entity.Address;
 import ru.bankonline.project.entity.Customer;
 import ru.bankonline.project.repositories.AddressesRepository;
-import ru.bankonline.project.repositories.CustomersRepository;
 import ru.bankonline.project.services.customersservice.CustomersService;
 import ru.bankonline.project.utils.exceptions.NotFoundInBaseException;
 
@@ -18,13 +18,11 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class AddressesServiceImpl implements AddressesService {
 
-    private final CustomersRepository customersRepository;
     private final AddressesRepository addressesRepository;
     private final CustomersService customersService;
 
-    public AddressesServiceImpl(CustomersRepository customersRepository,
-                                AddressesRepository addressesRepository, CustomersService customersService) {
-        this.customersRepository = customersRepository;
+    @Autowired
+    public AddressesServiceImpl(AddressesRepository addressesRepository, CustomersService customersService) {
         this.addressesRepository = addressesRepository;
         this.customersService = customersService;
     }
@@ -51,7 +49,7 @@ public class AddressesServiceImpl implements AddressesService {
         existingCustomer.getAddress().setApartment(address.getApartment());
 
         existingCustomer.setUpdateDate(LocalDateTime.now());
-        customersRepository.save(existingCustomer);
+        customersService.saveCustomersRepository(existingCustomer);
         log.info(existingCustomer.toString());
     }
 }

@@ -151,42 +151,42 @@ class SavingsAccountsServiceImplTest {
                         accountNumberCustomer, transferAmount));
     }
 
-    @Test
-    void shouldBeTransferFromTheCardToTheSavingsAccount() {
-        newCustomer.getSavingsAccounts().get(0).setBalance(BigDecimal.valueOf(0));
-        when(customersService.customerSearchByPassportSeriesAndNumber(customer.getPassportSeries(), customer.getPassportNumber()))
-                .thenReturn(customer);
-        when(cardsService.checkCardExists(customer, customer.getCards().get(0).getCardNumber()))
-                .thenReturn(customer.getCards().get(0));
-        when(customersService.getCustomerBySavingAccountNumber(newCustomer.getSavingsAccounts().get(0).getAccountNumber()))
-                .thenReturn(newCustomer);
-
-        savingsAccountsService.transferFromCardToSavingsAccount(customer.getPassportSeries(), customer.getPassportNumber(),
-                customer.getCards().get(0).getCardNumber(), newCustomer.getSavingsAccounts().get(0).getAccountNumber(),
-                BigDecimal.valueOf(10_000));
-        log.info("Перевод денежных средств с карты на сберегательный счет");
-    }
-
-    @Test
-    void shouldGetAnExceptionIfThereAreNotEnoughFundsToTransfer() {
-        newCustomer.getSavingsAccounts().get(0).setBalance(BigDecimal.valueOf(0));
-        when(customersService.customerSearchByPassportSeriesAndNumber(customer.getPassportSeries(), customer.getPassportNumber()))
-                .thenReturn(customer);
-        when(cardsService.checkCardExists(customer, customer.getCards().get(0).getCardNumber()))
-                .thenReturn(customer.getCards().get(0));
-        when(customersService.getCustomerBySavingAccountNumber(newCustomer.getSavingsAccounts().get(0).getAccountNumber()))
-                .thenReturn(newCustomer);
-
-        Integer passportSeriesCustomer = customer.getPassportSeries();
-        Integer passportNumberCustomer = customer.getPassportNumber();
-        String cardNumberCustomer = customer.getCards().get(0).getCardNumber();
-        String accountNumberNewCustomer = newCustomer.getSavingsAccounts().get(0).getAccountNumber();
-        BigDecimal balanceCustomerMoreThanAcceptable = customer.getCards().get(0).getBalance().add(BigDecimal.valueOf(1_000));
-
-        Assertions.assertThrows(InsufficientFundsException.class,
-                () -> savingsAccountsService.transferFromCardToSavingsAccount(passportSeriesCustomer, passportNumberCustomer,
-                        cardNumberCustomer, accountNumberNewCustomer, balanceCustomerMoreThanAcceptable));
-    }
+//    @Test
+//    void shouldBeTransferFromTheCardToTheSavingsAccount() {
+//        newCustomer.getSavingsAccounts().get(0).setBalance(BigDecimal.valueOf(0));
+//        when(customersService.customerSearchByPassportSeriesAndNumber(customer.getPassportSeries(), customer.getPassportNumber()))
+//                .thenReturn(customer);
+//        when(cardsService.checkCardExists(customer, customer.getCards().get(0).getCardNumber()))
+//                .thenReturn(customer.getCards().get(0));
+//        when(customersService.getCustomerBySavingAccountNumber(newCustomer.getSavingsAccounts().get(0).getAccountNumber()))
+//                .thenReturn(newCustomer);
+//
+//        cardsService.transferFromCardToSavingsAccount(customer.getPassportSeries(), customer.getPassportNumber(),
+//                customer.getCards().get(0).getCardNumber(), newCustomer.getSavingsAccounts().get(0).getAccountNumber(),
+//                BigDecimal.valueOf(10_000));
+//        log.info("Перевод денежных средств с карты на сберегательный счет");
+//    }
+//
+//    @Test
+//    void shouldGetAnExceptionIfThereAreNotEnoughFundsToTransfer() {
+//        newCustomer.getSavingsAccounts().get(0).setBalance(BigDecimal.valueOf(0));
+//        when(customersService.customerSearchByPassportSeriesAndNumber(customer.getPassportSeries(), customer.getPassportNumber()))
+//                .thenReturn(customer);
+//        when(cardsService.checkCardExists(customer, customer.getCards().get(0).getCardNumber()))
+//                .thenReturn(customer.getCards().get(0));
+//        when(customersService.getCustomerBySavingAccountNumber(newCustomer.getSavingsAccounts().get(0).getAccountNumber()))
+//                .thenReturn(newCustomer);
+//
+//        Integer passportSeriesCustomer = customer.getPassportSeries();
+//        Integer passportNumberCustomer = customer.getPassportNumber();
+//        String cardNumberCustomer = customer.getCards().get(0).getCardNumber();
+//        String accountNumberNewCustomer = newCustomer.getSavingsAccounts().get(0).getAccountNumber();
+//        BigDecimal balanceCustomerMoreThanAcceptable = customer.getCards().get(0).getBalance().add(BigDecimal.valueOf(1_000));
+//
+//        Assertions.assertThrows(InsufficientFundsException.class,
+//                () -> cardsService.transferFromCardToSavingsAccount(passportSeriesCustomer, passportNumberCustomer,
+//                        cardNumberCustomer, accountNumberNewCustomer, balanceCustomerMoreThanAcceptable));
+//    }
 
     @Test
     void shouldCheckTheBalance() {

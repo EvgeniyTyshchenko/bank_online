@@ -7,4 +7,6 @@ import java.util.List;
 public interface TransactionsService {
 
     List<Transaction> getTransactionCustomer(Integer passportSeries, Integer passportNumber);
+
+    void saveTransactionsRepository(Transaction transaction);
 }
