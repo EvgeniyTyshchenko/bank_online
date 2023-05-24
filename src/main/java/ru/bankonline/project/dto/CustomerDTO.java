@@ -46,10 +46,9 @@ public class CustomerDTO implements DTO {
                 ContactDTO.convertToContact(customerDTO.getContactDTO(),modelMapper));
     }
 
-    public static Customer convertToCustomer(CustomerDTO customerDTO, ModelMapper modelMapper) {
-        return new Customer(customerDTO.passportSeries, customerDTO.passportNumber,
-                customerDTO.lastName, customerDTO.firstName, customerDTO.patronymic,
-                customerDTO.birthday);
+    public static Customer convertToCustomer(CustomerDTO customerDTO) {
+        return new Customer(customerDTO.passportSeries, customerDTO.passportNumber, customerDTO.lastName,
+                customerDTO.firstName, customerDTO.patronymic, customerDTO.birthday);
     }
 
     public static CustomerDTO convertToDTOTheEntireCustomerAndCardsAndAccounts(Customer customer, ModelMapper modelMapper) {

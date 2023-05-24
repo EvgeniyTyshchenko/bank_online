@@ -67,7 +67,7 @@ public class CustomersController {
                                                      @RequestBody CustomerDTO customerDTO, BindingResult bindingResult) {
         log.info("Обновление клиента в базе по серии {} и номеру {} паспорта", series, number);
         checkIfThereErrorInTheUpdate(bindingResult, customerValidator, customerDTO);
-        customersService.updateCustomer(series, number, CustomerDTO.convertToCustomer(customerDTO, modelMapper));
+        customersService.updateCustomer(series, number, CustomerDTO.convertToCustomer(customerDTO));
         return ResponseEntity.ok(HttpStatus.OK);
     }
 

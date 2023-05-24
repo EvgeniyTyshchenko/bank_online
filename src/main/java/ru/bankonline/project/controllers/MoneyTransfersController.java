@@ -33,7 +33,7 @@ public class MoneyTransfersController {
                                                                 @PathVariable String senderCardNumber,
                                                                 @PathVariable String recipientCardNumber, @PathVariable BigDecimal amount) {
         cardsService.transferBetweenCards(series, number, senderCardNumber, recipientCardNumber, amount);
-        return ResponseEntity.ok("Перевод с карты: " + senderCardNumber + " на карту: " + recipientCardNumber + " - выполнен!" );
+        return ResponseEntity.ok("Перевод с карты: " + senderCardNumber + " на карту: " + recipientCardNumber + " - реализован!" );
     }
 
     @Operation(summary = "Пополнение сберегательного счета через кассу банка",
@@ -65,6 +65,6 @@ public class MoneyTransfersController {
                                                                              @PathVariable String senderAccountNumber,
                                                                              @PathVariable String recipientAccountNumber, @PathVariable BigDecimal amount) {
         savingsAccountsService.transferFromSavingsAccountToSavingsAccount(series, number, senderAccountNumber, recipientAccountNumber, amount);
-        return ResponseEntity.ok("Перевод со счета: " + senderAccountNumber + " на счет: " + recipientAccountNumber + " - выполнен!" );
+        return ResponseEntity.ok("Перевод со счета: " + senderAccountNumber + " на счет: " + recipientAccountNumber + " - произведен!" );
     }
 }

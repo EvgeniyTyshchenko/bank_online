@@ -25,6 +25,10 @@ public class TransactionsServiceImpl implements TransactionsService {
     private final TransactionsRepository transactionsRepository;
     private final CustomersService customersService;
 
+    private final String closure = "[closure]";
+    private final String discovery = "[discovery]";
+    private final String bank = "[BANK]";
+
     @Autowired
     public TransactionsServiceImpl(TransactionsRepository transactionsRepository, CustomersService customersService) {
         this.transactionsRepository = transactionsRepository;
@@ -75,7 +79,7 @@ public class TransactionsServiceImpl implements TransactionsService {
 
     @Override
     public void transactionToCloseCard(Integer customerId) {
-        Transaction transaction = new Transaction(customerId, "[closure]", "[closure]",
+        Transaction transaction = new Transaction(customerId, closure, closure,
                 BigDecimal.valueOf(0), Currency.RUB, TransactionType.CLOSECARD, LocalDateTime.now());
         transactionsRepository.save(transaction);
     }
@@ -96,7 +100,7 @@ public class TransactionsServiceImpl implements TransactionsService {
 
     @Override
     public void transactionToOpenCard(Customer customer) {
-        Transaction transaction = new Transaction(customer.getCustomerId(), "[discovery]", "[discovery]",
+        Transaction transaction = new Transaction(customer.getCustomerId(), discovery, discovery,
                 BigDecimal.valueOf(0), Currency.RUB, TransactionType.OPENCARD, LocalDateTime.now());
         transactionsRepository.save(transaction);
     }
@@ -131,28 +135,28 @@ public class TransactionsServiceImpl implements TransactionsService {
 
     @Override
     public void transactionReplenishmentBalanceThroughTheBankCashDesk(Customer customer, SavingsAccount savingsAccount, BigDecimal amount) {
-        Transaction transaction = new Transaction(customer.getCustomerId(), "[BANK]", savingsAccount.getAccountNumber(),
+        Transaction transaction = new Transaction(customer.getCustomerId(), bank, savingsAccount.getAccountNumber(),
                 amount, savingsAccount.getCurrency(), TransactionType.INTRANSFER, LocalDateTime.now());
         transactionsRepository.save(transaction);
     }
 
     @Override
     public void transactionToCloseSavingsAccount(Integer customerId) {
-        Transaction transaction = new Transaction(customerId, "[closure]", "[closure]",
+        Transaction transaction = new Transaction(customerId, closure, closure,
                 BigDecimal.valueOf(0), Currency.RUB, TransactionType.CLOSEACCOUNT, LocalDateTime.now());
         transactionsRepository.save(transaction);
     }
 
     @Override
     public void transactionWithdrawalMoneyFromSavingsAccountThroughCashier(Customer customer, SavingsAccount savingsAccount) {
-        Transaction transaction = new Transaction(customer.getCustomerId(), "[BANK]", "[cash withdrawal]",
+        Transaction transaction = new Transaction(customer.getCustomerId(), bank, "[cash withdrawal]",
                 savingsAccount.getBalance(), savingsAccount.getCurrency(), TransactionType.INTRANSFER, LocalDateTime.now());
         transactionsRepository.save(transaction);
     }
 
     @Override
     public void transactionToOpenSavingAccount(Customer customer) {
-        Transaction transaction = new Transaction(customer.getCustomerId(), "[discovery]", "[discovery]",
+        Transaction transaction = new Transaction(customer.getCustomerId(), discovery, discovery,
                 BigDecimal.valueOf(0), Currency.RUB, TransactionType.OPENACCOUNT, LocalDateTime.now());
         transactionsRepository.save(transaction);
     }
@@ -175,7 +179,7 @@ public class TransactionsServiceImpl implements TransactionsService {
 
     @Override
     public void transactionAccrualOfInterestOnTheDeposit(Integer customerId, SavingsAccount savingsAccount, BigDecimal amountAccruedInterest) {
-        Transaction transaction = new Transaction(customerId, "[BANK]", savingsAccount.getAccountNumber(),
+        Transaction transaction = new Transaction(customerId, bank, savingsAccount.getAccountNumber(),
                 amountAccruedInterest, Currency.RUB, TransactionType.CAPITALIZATION, LocalDateTime.now());
         transactionsRepository.save(transaction);
     }
