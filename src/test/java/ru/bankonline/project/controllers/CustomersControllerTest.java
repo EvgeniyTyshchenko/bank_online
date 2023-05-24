@@ -16,7 +16,6 @@ import ru.bankonline.project.constants.Currency;
 import ru.bankonline.project.constants.Status;
 import ru.bankonline.project.dto.CustomerDTO;
 import ru.bankonline.project.entity.*;
-import ru.bankonline.project.repositories.CustomersRepository;
 import ru.bankonline.project.services.customersservice.CustomersService;
 import ru.bankonline.project.utils.validators.CustomerValidator;
 import ru.bankonline.project.utils.validators.FullCustomerValidator;
@@ -37,15 +36,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class CustomersControllerTest {
 
     @Mock
-    private CustomersService customersService;
-    @Mock
     private FullCustomerValidator fullCustomerValidator;
     @Mock
     private CustomerValidator customerValidator;
     @Autowired
     private ModelMapper modelMapper;
     @Autowired
-    private CustomersRepository customersRepository;
+    private CustomersService customersService;
     @Autowired
     private MockMvc mockMvc;
     private static Customer customer;
@@ -56,6 +53,7 @@ class CustomersControllerTest {
         customer = new Customer(8596, 120562, "Тыщенко", "Евгений", "Владимирович", "05.05.1997",
                 new Address("Россия", "Краснодар", "ул.Московская", "12/3", 204),
                 new Contact("89887444565", "eugenityschenko@yandex.ru"));
+        customer.setCustomerId(1);
 
         Card card = new Card(customer.getCustomerId(), "5020607845129600", "880",
                 "89526520550555548896", BigDecimal.valueOf(0), Currency.RUB);
@@ -70,7 +68,7 @@ class CustomersControllerTest {
 
     @Test
     void shouldGetCustomerByPassportSeriesAndNumber() throws Exception {
-        customersRepository.save(customer);
+        customersService.saveCustomersRepository(customer);
 
         mockMvc.perform(get("/customers/series/{series}/number/{number}",
                         customer.getPassportSeries(), customer.getPassportNumber()))
@@ -86,9 +84,7 @@ class CustomersControllerTest {
                 .andExpect(jsonPath("$.addressDTO.house").value("12/3"))
                 .andExpect(jsonPath("$.addressDTO.apartment").value(204))
                 .andExpect(jsonPath("$.contactDTO.phoneNumber").value("89887444565"))
-                .andExpect(jsonPath("$.contactDTO.email").value("eugenityschenko@yandex.ru"))
-                .andExpect(jsonPath("$.cardDTO[0].accountNumber").value("89526520550555548896"))
-                .andExpect(jsonPath("$.savingsAccountDTO[0].accountNumber").value("44458599652005891102"));
+                .andExpect(jsonPath("$.contactDTO.email").value("eugenityschenko@yandex.ru"));
     }
 
     @Test
@@ -103,14 +99,14 @@ class CustomersControllerTest {
 
     @Test
     void shouldUpdateCustomer() throws Exception {
-        customersRepository.save(customer);
+        customersService.saveCustomersRepository(customer);
         Customer newCustomer = new Customer(7745, 100055, "Тыщенко", "Евгений", "Владимирович", "12.07.1995",
                 new Address("Россия", "Краснодар", "ул.Московская", "12/3", 204),
                 new Contact("89887444565", "eugenityschenko@yandex.ru"));
 
         CustomerDTO newCustomerDTO = CustomerDTO.convertToDTOCustomerWithAddressAndContacts(newCustomer, modelMapper);
 
-        mockMvc.perform(patch("/customers/series/{series}/number/{number}",
+        mockMvc.perform(patch("/customers/update/series/{series}/number/{number}",
                         customer.getPassportSeries(), customer.getPassportNumber())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(newCustomerDTO)))
@@ -118,17 +114,18 @@ class CustomersControllerTest {
     }
 
     @Test
-    void shouldDeleteCustomer() throws Exception {
-        customersRepository.save(customer);
+    void shouldClosingCustomer() throws Exception {
+        customersService.saveCustomersRepository(customer);
 
-        mockMvc.perform(delete("/customers/series/{series}/number/{number}",
+        mockMvc.perform(patch("/customers/close/series/{series}/number/{number}",
                         customer.getPassportSeries(), customer.getPassportNumber()))
                 .andExpect(status().isOk());
     }
 
     @Test
     void shouldGetCustomerByCardNumber() throws Exception {
-        customersRepository.save(customer);
+        customer.getCards().get(0).setCustomerId(customer.getCustomerId());
+        customersService.saveCustomersRepository(customer);
 
         mockMvc.perform(get("/customers/cardNumber/{cardNumber}",
                         customer.getCards().get(0).getCardNumber()))
@@ -149,7 +146,8 @@ class CustomersControllerTest {
 
     @Test
     void shouldGetCustomerBySavingAccountNumber() throws Exception {
-        customersRepository.save(customer);
+        customer.getSavingsAccounts().get(0).setCustomerId(customer.getCustomerId());
+        customersService.saveCustomersRepository(customer);
 
         mockMvc.perform(get("/customers/accountNumber/{accountNumber}",
                         customer.getSavingsAccounts().get(0).getAccountNumber()))

@@ -2,15 +2,13 @@ package ru.bankonline.project.services.customersservice;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.bankonline.project.constants.Currency;
-import ru.bankonline.project.constants.TransactionType;
 import ru.bankonline.project.entity.Card;
 import ru.bankonline.project.entity.Customer;
 import ru.bankonline.project.entity.SavingsAccount;
 import ru.bankonline.project.constants.Status;
-import ru.bankonline.project.entity.Transaction;
 import ru.bankonline.project.repositories.CustomersRepository;
 import ru.bankonline.project.services.MailSender;
 import ru.bankonline.project.services.cardsservice.CardsService;
@@ -35,8 +33,8 @@ public class CustomersServiceImpl implements CustomersService {
     private final MailSender mailSender;
 
     @Autowired
-    public CustomersServiceImpl(CustomersRepository customersRepository, TransactionsService transactionsService,
-                                CardsService cardsService, SavingsAccountsService savingsAccountsService,
+    public CustomersServiceImpl(CustomersRepository customersRepository, @Lazy TransactionsService transactionsService,
+                                @Lazy CardsService cardsService, @Lazy SavingsAccountsService savingsAccountsService,
                                 MailSender mailSender) {
         this.customersRepository = customersRepository;
         this.transactionsService = transactionsService;
@@ -45,14 +43,13 @@ public class CustomersServiceImpl implements CustomersService {
         this.mailSender = mailSender;
     }
 
-
     @Override
     @Transactional
     public void addNewCustomer(Customer customer) {
         isPassportExists(customer.getPassportSeries(), customer.getPassportNumber());
         enrichCustomerToActivate(customer);
         customersRepository.save(customer);
-        transactionToRegisterNewCustomer(customer.getCustomerId());
+        transactionsService.transactionToRegisterNewCustomer(customer.getCustomerId());
 
         String message = "Здравствуйте, " + customer.getFirstName() + " " + customer.getPatronymic() + "! \n"
                 + "Добро пожаловать в наш банк!";
@@ -71,13 +68,13 @@ public class CustomersServiceImpl implements CustomersService {
 
     @Override
     @Transactional
-    public void deleteCustomer(Integer passportSeries, Integer passportNumber) {
+    public void closingCustomer(Integer passportSeries, Integer passportNumber) {
         Customer customer = customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
-        checkIfTheCustomerIsBlockedOrDeleted(customer);
+        checkIfTheCustomerIsBlockedOrClosed(customer);
 
         List<Card> cards = cardsService.findByCustomerIdToCardsRepository(customer.getCustomerId());
         List<SavingsAccount> savingsAccounts = savingsAccountsService
-                .findByCustomerIdToSavingsAccountsRepository(customer.getCustomerId());;
+                .findByCustomerIdToSavingsAccountsRepository(customer.getCustomerId());
 
         boolean hasBalanceOnCard = checkIfHasBalanceOnCard(cards);
         boolean hasBalanceOnSavingsAccount = checkIfHasBalanceOnSavingsAccount(savingsAccounts);
@@ -91,7 +88,7 @@ public class CustomersServiceImpl implements CustomersService {
             closeSavingsAccounts(savingsAccounts);
         }
         enrichCustomerToClose(customer);
-        transactionToDeleteCustomer(customer.getCustomerId());
+        transactionsService.transactionToDeleteCustomer(customer.getCustomerId());
 
         log.info("Клиент {} удален", customer.getLastName() + " "
                 + customer.getFirstName() + " " + customer.getPatronymic());
@@ -129,7 +126,7 @@ public class CustomersServiceImpl implements CustomersService {
     }
 
     @Override
-    public void checkIfTheCustomerIsBlockedOrDeleted(Customer customer) {
+    public void checkIfTheCustomerIsBlockedOrClosed(Customer customer) {
         if (customer.getStatus() == Status.BLOCKED || customer.getStatus() == Status.CLOSED) {
             log.info("Клиент {} заблокирован или удален", customer.getLastName() + " "
                     + customer.getFirstName() + " " + customer.getPatronymic());
@@ -206,17 +203,5 @@ public class CustomersServiceImpl implements CustomersService {
         customer.setStatus(Status.ACTIVE);
         customer.setCreateDate(LocalDateTime.now());
         customer.setUpdateDate(LocalDateTime.now());
-    }
-
-    public void transactionToRegisterNewCustomer(Integer customerId) {
-        Transaction transaction = new Transaction(customerId, "[registration]", "[registration]",
-                BigDecimal.valueOf(0), Currency.RUB, TransactionType.REGISTERCUSTOMER, LocalDateTime.now());
-        transactionsService.saveTransactionsRepository(transaction);
-    }
-
-    public void transactionToDeleteCustomer(Integer customerId) {
-        Transaction transaction = new Transaction(customerId, "[removal]", "[removal]",
-                BigDecimal.valueOf(0), Currency.RUB, TransactionType.DELETECUSTOMER, LocalDateTime.now());
-        transactionsService.saveTransactionsRepository(transaction);
     }
 }

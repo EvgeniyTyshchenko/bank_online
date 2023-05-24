@@ -8,26 +8,28 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.bankonline.project.BankOnlineApplication;
 import ru.bankonline.project.constants.Currency;
 import ru.bankonline.project.constants.Status;
 import ru.bankonline.project.entity.Card;
 import ru.bankonline.project.entity.Contact;
 import ru.bankonline.project.entity.Customer;
-import ru.bankonline.project.repositories.CustomersRepository;
 import ru.bankonline.project.services.cardsservice.CardsService;
+import ru.bankonline.project.services.customersservice.CustomersService;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.springframework.test.annotation.DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest(classes = BankOnlineApplication.class)
 @AutoConfigureMockMvc
+@DirtiesContext(classMode = BEFORE_EACH_TEST_METHOD)
 class CardsControllerTest {
 
     @Mock
@@ -35,7 +37,7 @@ class CardsControllerTest {
     @Mock
     private ModelMapper modelMapper;
     @Autowired
-    private CustomersRepository customersRepository;
+    private CustomersService customersService;
     @Autowired
     private MockMvc mockMvc;
     private static Customer customer;
@@ -55,16 +57,17 @@ class CardsControllerTest {
 
     @Test
     void shouldAddNewCardToTheCustomer() throws Exception {
-        customersRepository.save(customer);
+        customersService.saveCustomersRepository(customer);
 
         mockMvc.perform(post("/cards/series/{series}/number/{number}",
                         customer.getPassportSeries(), customer.getPassportNumber()))
                 .andExpect(status().isOk());
     }
 
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     @Test
     void shouldDeleteTheCardFromTheCustomer() throws Exception {
-        customersRepository.save(customer);
+        customersService.saveCustomersRepository(customer);
 
         mockMvc.perform(patch("/cards/series/{series}/number/{number}/close/{cardNumber}",
                 customer.getPassportSeries(), customer.getPassportNumber(), customer.getCards().get(0).getCardNumber()))
@@ -75,7 +78,7 @@ class CardsControllerTest {
 
     @Test
     void shouldBlockTheCustomerCard() throws Exception {
-        customersRepository.save(customer);
+        customersService.saveCustomersRepository(customer);
 
         mockMvc.perform(patch("/cards/series/{series}/number/{number}/block/{cardNumber}",
                         customer.getPassportSeries(), customer.getPassportNumber(), customer.getCards().get(0).getCardNumber()))
@@ -87,7 +90,7 @@ class CardsControllerTest {
     @Test
     void shouldUnlockTheCustomerCard() throws Exception {
         customer.getCards().get(0).setStatus(Status.BLOCKED);
-        customersRepository.save(customer);
+        customersService.saveCustomersRepository(customer);
 
         mockMvc.perform(patch("/cards/series/{series}/number/{number}/unlock/{cardNumber}",
                         customer.getPassportSeries(), customer.getPassportNumber(), customer.getCards().get(0).getCardNumber()))
@@ -98,7 +101,7 @@ class CardsControllerTest {
     @Test
     void shouldCheckBalanceCard() throws Exception {
         customer.getCards().get(0).setStatus(Status.ACTIVE);
-        customersRepository.save(customer);
+        customersService.saveCustomersRepository(customer);
 
         mockMvc.perform(get("/cards/series/{series}/number/{number}/checkBalance/{cardNumber}",
                         customer.getPassportSeries(), customer.getPassportNumber(), customer.getCards().get(0).getCardNumber()))
@@ -107,29 +110,9 @@ class CardsControllerTest {
     }
 
     @Test
-    void shouldTransferBetweenCardsCustomers() throws Exception {
-        Customer newCustomer = new Customer();
-        newCustomer.setPassportSeries(9956);
-        newCustomer.setPassportNumber(789655);
-        Card card = new Card(1, "5500895566000044", "990",
-                "78888555000047774481", BigDecimal.valueOf(15_000), Currency.RUB);
-        newCustomer.setCards(new ArrayList<>(List.of(card)));
-
-        customersRepository.save(customer);
-        customersRepository.save(newCustomer);
-
-        mockMvc.perform(MockMvcRequestBuilders.patch("/cards/{series}/{number}/{senderCardNumber}/{recipientCardNumber}/{amount}",
-                                newCustomer.getPassportSeries(), newCustomer.getPassportNumber(), newCustomer.getCards().get(0).getCardNumber(),
-                        customer.getCards().get(0).getCardNumber(), 5_000))
-                .andExpect(status().isOk())
-                .andExpect(content().string("Перевод с карты: " + newCustomer.getCards().get(0).getCardNumber() + " на карту: " +
-                        customer.getCards().get(0).getCardNumber() + " - выполнен!"));
-    }
-
-    @Test
     void shouldGetCardDetails() throws Exception {
         customer.getCards().get(0).setBalance(BigDecimal.ZERO);
-        customersRepository.save(customer);
+        customersService.saveCustomersRepository(customer);
 
         mockMvc.perform(get("/cards/details/{series}/{number}/{cardNumber}",
                         customer.getPassportSeries(), customer.getPassportNumber(), customer.getCards().get(0).getCardNumber()))

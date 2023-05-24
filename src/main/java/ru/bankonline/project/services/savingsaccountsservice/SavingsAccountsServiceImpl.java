@@ -6,10 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.bankonline.project.entity.Customer;
 import ru.bankonline.project.entity.SavingsAccount;
-import ru.bankonline.project.entity.Transaction;
 import ru.bankonline.project.constants.Currency;
 import ru.bankonline.project.constants.Status;
-import ru.bankonline.project.constants.TransactionType;
 import ru.bankonline.project.repositories.SavingsAccountsRepository;
 import ru.bankonline.project.services.customersservice.CustomersService;
 import ru.bankonline.project.services.transactionsservice.TransactionsService;
@@ -18,6 +16,7 @@ import ru.bankonline.project.utils.exceptions.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -42,7 +41,7 @@ public class SavingsAccountsServiceImpl implements SavingsAccountsService {
     public void openSavingAccountToTheCustomer(Integer passportSeries, Integer passportNumber) {
         Customer existingCustomer = customersService
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
-        customersService.checkIfTheCustomerIsBlockedOrDeleted(existingCustomer);
+        customersService.checkIfTheCustomerIsBlockedOrClosed(existingCustomer);
 
         String uniqueAccountNumber = UUID.randomUUID().toString().replaceAll("\\D", "0").substring(0, 20);
 
@@ -50,7 +49,7 @@ public class SavingsAccountsServiceImpl implements SavingsAccountsService {
                 Currency.RUB, Status.ACTIVE, LocalDateTime.now(), LocalDateTime.now());
 
         savingsAccountsRepository.save(savingsAccount);
-        transactionToOpenSavingAccount(existingCustomer);
+        transactionsService.transactionToOpenSavingAccount(existingCustomer);
         log.info("Открытие сберегательного счета. Номер счета: " + savingsAccount.getAccountNumber());
     }
 
@@ -59,13 +58,13 @@ public class SavingsAccountsServiceImpl implements SavingsAccountsService {
     public String closeAccountAndWithdrawMoneyThroughCashier(Integer passportSeries, Integer passportNumber, String accountNumber) {
         Customer existingCustomer = customersService
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
-        customersService.checkIfTheCustomerIsBlockedOrDeleted(existingCustomer);
+        customersService.checkIfTheCustomerIsBlockedOrClosed(existingCustomer);
 
         SavingsAccount savingsAccountExisting = checkSavingAccountExists(existingCustomer, accountNumber);
         checkIfTheSavingAccountIsNotClosedOrBlocked(savingsAccountExisting);
         String result = checkSavingAccountBalance(existingCustomer, savingsAccountExisting);
         enrichSavingAccountForClosure(savingsAccountExisting);
-        transactionToClose(existingCustomer.getCustomerId());
+        transactionsService.transactionToCloseSavingsAccount(existingCustomer.getCustomerId());
 
         log.info("Закрытие сберегательного счета. Номер счета: " + savingsAccountExisting.getAccountNumber());
         return result;
@@ -77,7 +76,7 @@ public class SavingsAccountsServiceImpl implements SavingsAccountsService {
                                                         String accountNumber, BigDecimal amount) {
         Customer existingCustomer = customersService
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
-        customersService.checkIfTheCustomerIsBlockedOrDeleted(existingCustomer);
+        customersService.checkIfTheCustomerIsBlockedOrClosed(existingCustomer);
 
         SavingsAccount savingsAccountExisting = checkSavingAccountExists(existingCustomer, accountNumber);
         checkIfTheSavingAccountIsNotClosedOrBlocked(savingsAccountExisting);
@@ -87,7 +86,7 @@ public class SavingsAccountsServiceImpl implements SavingsAccountsService {
         BigDecimal newBalance = currentBalance.add(amount);
         savingsAccountExisting.setBalance(newBalance);
         savingsAccountsRepository.save(savingsAccountExisting);
-        transactionBalanceReplenishment(existingCustomer, savingsAccountExisting, amount);
+        transactionsService.transactionReplenishmentBalanceThroughTheBankCashDesk(existingCustomer, savingsAccountExisting, amount);
 
         log.info("Пополнение сберегательного счета через кассу. Номер счета: " + savingsAccountExisting.getAccountNumber()
                 + ", сумма: " + amount + savingsAccountExisting.getCurrency());
@@ -99,11 +98,11 @@ public class SavingsAccountsServiceImpl implements SavingsAccountsService {
     public String checkBalance(Integer passportSeries, Integer passportNumber, String savingsAccountNumber) {
         Customer existingCustomer = customersService
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
-        customersService.checkIfTheCustomerIsBlockedOrDeleted(existingCustomer);
+        customersService.checkIfTheCustomerIsBlockedOrClosed(existingCustomer);
 
         SavingsAccount savingsAccountExisting = checkSavingAccountExists(existingCustomer, savingsAccountNumber);
         checkIfTheSavingAccountIsNotClosedOrBlocked(savingsAccountExisting);
-        transactionBalanceRequest(existingCustomer, savingsAccountExisting);
+        transactionsService.savingsAccountBalanceRequestTransaction(existingCustomer, savingsAccountExisting);
 
         log.info("Проверка баланса сберегательного счета. Номер счета: " + savingsAccountExisting.getAccountNumber());
         return String.format("Баланс: %.2f %s", savingsAccountExisting.getBalance(), savingsAccountExisting.getCurrency().toString());
@@ -115,7 +114,7 @@ public class SavingsAccountsServiceImpl implements SavingsAccountsService {
                                                            String senderSavingsAccountNumber, String recipientSavingsAccountNumber, BigDecimal amount) {
         Customer senderCustomer = customersService
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
-        customersService.checkIfTheCustomerIsBlockedOrDeleted(senderCustomer);
+        customersService.checkIfTheCustomerIsBlockedOrClosed(senderCustomer);
 
         SavingsAccount accountSenderExists = checkSavingAccountExists(senderCustomer, senderSavingsAccountNumber);
         checkIfTheSavingAccountIsNotClosedOrBlocked(accountSenderExists);
@@ -127,10 +126,10 @@ public class SavingsAccountsServiceImpl implements SavingsAccountsService {
 
         if (accountSenderExists.getBalance().compareTo(amount) >= 0) {
             accountSenderExists.setBalance(accountSenderExists.getBalance().subtract(amount));
-            transactionSendingFromAccountToAccount(senderCustomer, accountSenderExists, recipientAccountExisting, amount);
+            transactionsService.transactionSendingFromAccountToAccount(senderCustomer, accountSenderExists, recipientAccountExisting, amount);
 
             recipientAccountExisting.setBalance(recipientAccountExisting.getBalance().add(amount));
-            transactionReceivingFromAccountToAccount(recipientCustomer, accountSenderExists, recipientAccountExisting, amount);
+            transactionsService.transactionReceivingFromAccountToAccount(recipientCustomer, accountSenderExists, recipientAccountExisting, amount);
             savingsAccountsRepository.save(accountSenderExists);
             savingsAccountsRepository.save(recipientAccountExisting);
 
@@ -185,9 +184,14 @@ public class SavingsAccountsServiceImpl implements SavingsAccountsService {
         return savingsAccountsRepository.findByCustomerId(customerId);
     }
 
+    @Override
+    public Optional<SavingsAccount> findByIdToSavingsAccountsRepository(Integer accountId) {
+        return savingsAccountsRepository.findById(accountId);
+    }
+
     private String checkSavingAccountBalance(Customer customer, SavingsAccount savingsAccount) {
         if (savingsAccount.getBalance().compareTo(BigDecimal.ZERO) != 0) {
-            transactionWithdrawalMoneyThroughCashier(customer, savingsAccount);
+            transactionsService.transactionWithdrawalMoneyFromSavingsAccountThroughCashier(customer, savingsAccount);
             savingsAccount.setBalance(savingsAccount.getBalance().subtract(savingsAccount.getBalance()));
             savingsAccountsRepository.save(savingsAccount);
         }
@@ -199,49 +203,5 @@ public class SavingsAccountsServiceImpl implements SavingsAccountsService {
         savingsAccount.setStatus(Status.CLOSED);
         savingsAccount.setUpdateDate(LocalDateTime.now());
         savingsAccountsRepository.save(savingsAccount);
-    }
-
-    private void transactionBalanceRequest(Customer customer, SavingsAccount savingsAccount) {
-        Transaction transaction = new Transaction(customer.getCustomerId(), "[SA balance request]", "[SA balance request]",
-                savingsAccount.getBalance(), Currency.RUB, TransactionType.CHECKBALANCE, LocalDateTime.now());
-        transactionsService.saveTransactionsRepository(transaction);
-    }
-
-    private void transactionBalanceReplenishment(Customer customer, SavingsAccount savingsAccount, BigDecimal amount) {
-        Transaction transaction = new Transaction(customer.getCustomerId(), "[BANK]", savingsAccount.getAccountNumber(),
-                amount, savingsAccount.getCurrency(), TransactionType.INTRANSFER, LocalDateTime.now());
-        transactionsService.saveTransactionsRepository(transaction);
-    }
-
-    private void transactionToClose(Integer customerId) {
-        Transaction transaction = new Transaction(customerId, "[closure]", "[closure]",
-                BigDecimal.valueOf(0), Currency.RUB, TransactionType.CLOSEACCOUNT, LocalDateTime.now());
-        transactionsService.saveTransactionsRepository(transaction);
-    }
-
-    private void transactionWithdrawalMoneyThroughCashier(Customer customer, SavingsAccount savingsAccount) {
-        Transaction transaction = new Transaction(customer.getCustomerId(), "[BANK]", "[cash withdrawal]",
-                savingsAccount.getBalance(), savingsAccount.getCurrency(), TransactionType.INTRANSFER, LocalDateTime.now());
-        transactionsService.saveTransactionsRepository(transaction);
-    }
-
-    private void transactionToOpenSavingAccount(Customer customer) {
-        Transaction transaction = new Transaction(customer.getCustomerId(), "[discovery]", "[discovery]",
-                BigDecimal.valueOf(0), Currency.RUB, TransactionType.OPENACCOUNT, LocalDateTime.now());
-        transactionsService.saveTransactionsRepository(transaction);
-    }
-
-    private void transactionSendingFromAccountToAccount(Customer senderCustomer, SavingsAccount senderSavingsAccount,
-                                                        SavingsAccount recipientSavingsAccount, BigDecimal amount) {
-        Transaction transaction = new Transaction(senderCustomer.getCustomerId(), senderSavingsAccount.getAccountNumber(), recipientSavingsAccount.getAccountNumber(),
-                amount, senderSavingsAccount.getCurrency(), TransactionType.OUTTRANSFER, LocalDateTime.now());
-        transactionsService.saveTransactionsRepository(transaction);
-    }
-
-    private void transactionReceivingFromAccountToAccount(Customer recipientCustomer, SavingsAccount senderSavingsAccount,
-                                                          SavingsAccount recipientSavingsAccount, BigDecimal amount) {
-        Transaction transaction = new Transaction(recipientCustomer.getCustomerId(), senderSavingsAccount.getAccountNumber(), recipientSavingsAccount.getAccountNumber(),
-                amount, senderSavingsAccount.getCurrency(), TransactionType.INTRANSFER, LocalDateTime.now());
-        transactionsService.saveTransactionsRepository(transaction);
     }
 }

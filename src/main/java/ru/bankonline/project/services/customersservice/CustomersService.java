@@ -8,7 +8,7 @@ public interface CustomersService {
 
     Customer customerSearchByPassportSeriesAndNumber(Integer passportSeries, Integer passportNumber);
 
-    void deleteCustomer(Integer passportSeries, Integer passportNumber);
+    void closingCustomer(Integer passportSeries, Integer passportNumber);
 
     void updateCustomer(Integer passportSeries, Integer passportNumber, Customer customer);
 
@@ -16,7 +16,7 @@ public interface CustomersService {
 
     Customer getCustomerBySavingAccountNumber(String savingAccountNumber);
 
-    void checkIfTheCustomerIsBlockedOrDeleted(Customer customer);
+    void checkIfTheCustomerIsBlockedOrClosed(Customer customer);
 
     void saveCustomersRepository(Customer customer);
 }

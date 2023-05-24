@@ -5,9 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.bankonline.project.entity.SavingsAccount;
-import ru.bankonline.project.entity.Transaction;
-import ru.bankonline.project.constants.Currency;
-import ru.bankonline.project.constants.TransactionType;
 import ru.bankonline.project.services.savingsaccountsservice.SavingsAccountsService;
 import ru.bankonline.project.services.transactionsservice.TransactionsService;
 
@@ -46,16 +43,10 @@ public class DepositScheduler {
                 account.setBalance(balance.add(amountAccruedInterest));
                 account.setUpdateDate(LocalDateTime.now());
                 savingsAccountsService.saveRepositorySavingsAccounts(account);
-                transactionInterestAccruals(account.getCustomerId(), account, amountAccruedInterest);
+                transactionsService.transactionAccrualOfInterestOnTheDeposit(account.getCustomerId(), account, amountAccruedInterest);
                 log.info("На номер сберегательного счета {} произведено начисление процентов в размере {} RUB",
                         account.getAccountNumber(), amountAccruedInterest);
             }
         }
-    }
-
-    private void transactionInterestAccruals(Integer customerId, SavingsAccount savingsAccount, BigDecimal amountAccruedInterest) {
-        Transaction transaction = new Transaction(customerId, "[BANK]", savingsAccount.getAccountNumber(),
-                amountAccruedInterest, Currency.RUB, TransactionType.CAPITALIZATION, LocalDateTime.now());
-        transactionsService.saveTransactionsRepository(transaction);
     }
 }

@@ -12,7 +12,6 @@ import ru.bankonline.project.entity.Address;
 import ru.bankonline.project.entity.Contact;
 import ru.bankonline.project.entity.Customer;
 import ru.bankonline.project.repositories.AddressesRepository;
-import ru.bankonline.project.repositories.CustomersRepository;
 import ru.bankonline.project.services.addressesservice.AddressesServiceImpl;
 import ru.bankonline.project.services.customersservice.CustomersService;
 import ru.bankonline.project.utils.exceptions.NotFoundInBaseException;
@@ -27,8 +26,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class AddressesServiceImplTest {
 
-    @Mock
-    private CustomersRepository customersRepository;
     @Mock
     private AddressesRepository addressesRepository;
     @Mock

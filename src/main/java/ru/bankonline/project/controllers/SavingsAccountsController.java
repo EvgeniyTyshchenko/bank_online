@@ -8,8 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.bankonline.project.services.savingsaccountsservice.SavingsAccountsService;
 
-import java.math.BigDecimal;
-
 @RestController
 @RequestMapping("/savingsAccounts")
 @Tag(name = "Сберегательные счета", description = "CRUD-операции для работы с сберегательными счетами")

@@ -12,14 +12,16 @@ import ru.bankonline.project.constants.Currency;
 import ru.bankonline.project.constants.Status;
 import ru.bankonline.project.entity.*;
 import ru.bankonline.project.repositories.CardsRepository;
-import ru.bankonline.project.repositories.TransactionsRepository;
 import ru.bankonline.project.services.cardsservice.CardsServiceImpl;
 import ru.bankonline.project.services.customersservice.CustomersService;
+import ru.bankonline.project.services.savingsaccountsservice.SavingsAccountsService;
+import ru.bankonline.project.services.transactionsservice.TransactionsService;
 import ru.bankonline.project.utils.exceptions.ClosingCardException;
 import ru.bankonline.project.utils.exceptions.EnteringCardDataException;
 import ru.bankonline.project.utils.exceptions.InsufficientFundsException;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,9 +34,11 @@ class CardsServiceImplTest {
     @Mock
     private CardsRepository cardsRepository;
     @Mock
-    private TransactionsRepository transactionsRepository;
-    @Mock
     private CustomersService customersService;
+    @Mock
+    private TransactionsService transactionsService;
+    @Mock
+    private SavingsAccountsService savingsAccountsService;
     @Mock
     private MailSender mailSender;
     @InjectMocks
@@ -53,6 +57,11 @@ class CardsServiceImplTest {
                 BigDecimal.valueOf(27_000), Currency.RUB);
         cards = new ArrayList<>(List.of(card));
         customer.setCards(cards);
+
+        SavingsAccount savingsAccount = new SavingsAccount(customer.getCustomerId(), "20004545777776623511", BigDecimal.valueOf(0),
+                Currency.RUB, Status.ACTIVE, LocalDateTime.now(), LocalDateTime.now());
+        List<SavingsAccount> savingsAccounts = new ArrayList<>(List.of(savingsAccount));
+        customer.setSavingsAccounts(savingsAccounts);
 
         newCustomer = new Customer();
         newCustomer.setPassportSeries(7702);
@@ -75,46 +84,10 @@ class CardsServiceImplTest {
 
         cardsService.openCardToTheCustomer(customer.getPassportSeries(), customer.getPassportNumber());
 
-        verify(customersService, times(1)).checkIfTheCustomerIsBlockedOrDeleted(customer);
+        verify(customersService, times(1)).checkIfTheCustomerIsBlockedOrClosed(customer);
         verify(cardsRepository, times(1)).save(any(Card.class));
         log.info("Открытие карты");
     }
-
-//    @Test
-//    void shouldGetCard() {
-//        Card resultCard = cardsService.checkCardExists(customer, customer.getCards().get(0).getCardNumber());
-//        Assertions.assertEquals(customer.getCards().get(0), resultCard);
-//        log.info(resultCard.getCardNumber());
-//    }
-//
-//    @Test
-//    void shouldBeAnExceptionDueToTheAbsenceOfThisCardFromTheCustomer() {
-//        String cardNumber = newCustomer.getCards().get(0).getCardNumber();
-//        EnteringCardDataException exception = Assertions.assertThrows(EnteringCardDataException.class, () -> {
-//            cardsService.checkCardExists(customer, cardNumber);
-//        });
-//        Assertions.assertEquals("Номер карты, который вы вводите отсутствует у клиента "
-//                + customer.getLastName() + " " + customer.getFirstName() + " " + customer.getPatronymic()
-//                + " Проверьте реквизиты карты и попробуйте снова.", exception.getMessage());
-//    }
-
-//    @Test
-//    void shouldBeAnExceptionWhenTheCardIsClosed() {
-//        cards.get(0).setStatus(Status.CLOSED);
-//        Card cardCustomer = customer.getCards().get(0);
-//
-//        Assertions.assertThrows(ClosingCardException.class,
-//                () -> cardsService.checkIfTheCardIsNotClosedOrBlocked(cardCustomer));
-//    }
-//
-//    @Test
-//    void shouldBeAnExceptionWhenTheCardIsBlocked() {
-//        cards.get(0).setStatus(Status.BLOCKED);
-//        Card cardCustomer = customer.getCards().get(0);
-//
-//        Assertions.assertThrows(ClosingCardException.class,
-//                () -> cardsService.checkIfTheCardIsNotClosedOrBlocked(cardCustomer));
-//    }
 
     @Test
     void shouldSuccessfullyCloseTheCard() {
@@ -192,11 +165,101 @@ class CardsServiceImplTest {
     }
 
     @Test
+    void shouldBeTransferFromTheCardToTheSavingsAccount() {
+        customer.getCards().get(0).setStatus(Status.ACTIVE);
+        customer.getCards().get(0).setBalance(BigDecimal.valueOf(15_000));
+        when(customersService.customerSearchByPassportSeriesAndNumber(customer.getPassportSeries(), customer.getPassportNumber()))
+                .thenReturn(customer);
+        when(customersService.getCustomerBySavingAccountNumber(customer.getSavingsAccounts().get(0).getAccountNumber()))
+                .thenReturn(customer);
+        when(savingsAccountsService.checkSavingAccountExists(customer, customer.getSavingsAccounts().get(0).getAccountNumber()))
+                .thenReturn(customer.getSavingsAccounts().get(0));
+
+        cardsService.transferFromCardToSavingsAccount(customer.getPassportSeries(), customer.getPassportNumber(),
+                customer.getCards().get(0).getCardNumber(), customer.getSavingsAccounts().get(0).getAccountNumber(),
+                BigDecimal.valueOf(10_000));
+        log.info("Перевод денежных средств с карты на сберегательный счет");
+    }
+
+    @Test
+    void shouldGetAnExceptionIfThereAreNotEnoughFundsToTransfer() {
+        when(customersService.customerSearchByPassportSeriesAndNumber(customer.getPassportSeries(), customer.getPassportNumber()))
+                .thenReturn(customer);
+        when(customersService.getCustomerBySavingAccountNumber(customer.getSavingsAccounts().get(0).getAccountNumber()))
+                .thenReturn(customer);
+
+        Integer passportSeriesCustomer = customer.getPassportSeries();
+        Integer passportNumberCustomer = customer.getPassportNumber();
+        String cardNumberCustomer = customer.getCards().get(0).getCardNumber();
+        String savingsAccountsNumberCustomer = customer.getSavingsAccounts().get(0).getAccountNumber();
+        BigDecimal balanceCustomerMoreThanAcceptable = customer.getCards().get(0).getBalance().add(BigDecimal.valueOf(1_000));
+
+        Assertions.assertThrows(InsufficientFundsException.class,
+                () -> cardsService.transferFromCardToSavingsAccount(passportSeriesCustomer, passportNumberCustomer,
+                        cardNumberCustomer, savingsAccountsNumberCustomer, balanceCustomerMoreThanAcceptable));
+    }
+
+    @Test
     void shouldGetInformationOnTheCard() {
         when(customersService.customerSearchByPassportSeriesAndNumber(customer.getPassportSeries(), customer.getPassportNumber()))
                 .thenReturn(customer);
 
         cardsService.getCardDetails(customer.getPassportSeries(), customer.getPassportNumber(),
                 customer.getCards().get(0).getCardNumber());
+    }
+
+    @Test
+    void shouldBeAnExceptionWhenTheCardIsBlocked() {
+        cards.get(0).setStatus(Status.BLOCKED);
+        when(customersService.customerSearchByPassportSeriesAndNumber(customer.getPassportSeries(), customer.getPassportNumber()))
+                .thenReturn(customer);
+
+        Integer passportSeriesCustomer = customer.getPassportSeries();
+        Integer passportNumberCustomer = customer.getPassportNumber();
+        String cardNumber = cards.get(0).getCardNumber();
+        Assertions.assertThrows(ClosingCardException.class,
+                () -> cardsService.checkBalance(passportSeriesCustomer, passportNumberCustomer, cardNumber));
+    }
+
+    @Test
+    void shouldBeAnExceptionDueToTheAbsenceOfThisCardFromTheCustomer() {
+        when(customersService.customerSearchByPassportSeriesAndNumber(customer.getPassportSeries(), customer.getPassportNumber()))
+                .thenReturn(customer);
+
+        Integer passportSeriesCustomer = customer.getPassportSeries();
+        Integer passportNumberCustomer = customer.getPassportNumber();
+        String cardNumber = newCustomer.getCards().get(0).getCardNumber();
+        EnteringCardDataException exception = Assertions.assertThrows(EnteringCardDataException.class, () -> {
+            cardsService.checkBalance(passportSeriesCustomer, passportNumberCustomer, cardNumber);
+        });
+        Assertions.assertEquals("Номер карты, который вы вводите отсутствует у клиента "
+                + customer.getLastName() + " " + customer.getFirstName() + " " + customer.getPatronymic()
+                + " Проверьте реквизиты карты и попробуйте снова.", exception.getMessage());
+    }
+
+    @Test
+    void shouldBeAnExceptionWhenTheCardIsClosed() {
+        cards.get(0).setStatus(Status.CLOSED);
+        when(customersService.customerSearchByPassportSeriesAndNumber(customer.getPassportSeries(), customer.getPassportNumber()))
+                .thenReturn(customer);
+
+        Integer passportSeriesCustomer = customer.getPassportSeries();
+        Integer passportNumberCustomer = customer.getPassportNumber();
+        String cardNumber = cards.get(0).getCardNumber();
+        Assertions.assertThrows(ClosingCardException.class,
+                () -> cardsService.unlockCard(passportSeriesCustomer, passportNumberCustomer, cardNumber));
+    }
+
+    @Test
+    void shouldBeAnExceptionIfThereAreFundsOnTheBalanceWhenClosingTheCard() {
+        cards.get(0).setStatus(Status.ACTIVE);
+        when(customersService.customerSearchByPassportSeriesAndNumber(customer.getPassportSeries(), customer.getPassportNumber()))
+                .thenReturn(customer);
+
+        Integer passportSeriesCustomer = customer.getPassportSeries();
+        Integer passportNumberCustomer = customer.getPassportNumber();
+        String cardNumber = cards.get(0).getCardNumber();
+        Assertions.assertThrows(ClosingCardException.class,
+                () -> cardsService.closeCard(passportSeriesCustomer, passportNumberCustomer, cardNumber));
     }
 }

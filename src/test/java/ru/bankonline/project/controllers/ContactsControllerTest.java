@@ -16,9 +16,8 @@ import ru.bankonline.project.BankOnlineApplication;
 import ru.bankonline.project.dto.ContactDTO;
 import ru.bankonline.project.entity.Contact;
 import ru.bankonline.project.entity.Customer;
-import ru.bankonline.project.repositories.ContactsRepository;
-import ru.bankonline.project.repositories.CustomersRepository;
 import ru.bankonline.project.services.contactsservice.ContactsService;
+import ru.bankonline.project.services.customersservice.CustomersService;
 import ru.bankonline.project.utils.validators.ContactValidator;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -30,15 +29,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ContactsControllerTest {
 
     @Mock
-    private ContactsService contactsService;
-    @Mock
     private ContactValidator contactValidator;
     @Mock
     private ModelMapper modelMapper;
     @Autowired
-    private CustomersRepository customersRepository;
+    private CustomersService customersService;
     @Autowired
-    private ContactsRepository contactsRepository;
+    private ContactsService contactsService;
     @Autowired
     private MockMvc mockMvc;
 
@@ -48,8 +45,8 @@ class ContactsControllerTest {
         Contact contactOne = new Contact("89054778899", "stanislaavv@yandex.ru");
         Contact contactTwo = new Contact("89034551225", "test10@mail.ru");
 
-        contactsRepository.save(contactOne);
-        contactsRepository.save(contactTwo);
+        contactsService.saveContactsRepository(contactOne);
+        contactsService.saveContactsRepository(contactTwo);
 
         mockMvc.perform(get("/contacts/getAll"))
                 .andExpect(status().isOk())
@@ -67,7 +64,7 @@ class ContactsControllerTest {
         Contact contact = new Contact("89054110023", "evgeniy1990@mail.ru");
         customer.setContactDetails(contact);
 
-        customersRepository.save(customer);
+        customersService.saveCustomersRepository(customer);
 
         ObjectMapper objectMapper = new ObjectMapper();
         ContactDTO contactDTO = new ContactDTO("89054110022", "evgeniy1991@mail.ru");

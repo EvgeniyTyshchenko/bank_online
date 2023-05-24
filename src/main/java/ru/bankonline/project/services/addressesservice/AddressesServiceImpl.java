@@ -41,7 +41,7 @@ public class AddressesServiceImpl implements AddressesService {
     public void updateAddress(Integer passportSeries, Integer passportNumber, Address address) {
         Customer existingCustomer = customersService
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
-        customersService.checkIfTheCustomerIsBlockedOrDeleted(existingCustomer);
+        customersService.checkIfTheCustomerIsBlockedOrClosed(existingCustomer);
         existingCustomer.getAddress().setCountry(address.getCountry());
         existingCustomer.getAddress().setCity(address.getCity());
         existingCustomer.getAddress().setStreet(address.getStreet());
@@ -51,5 +51,10 @@ public class AddressesServiceImpl implements AddressesService {
         existingCustomer.setUpdateDate(LocalDateTime.now());
         customersService.saveCustomersRepository(existingCustomer);
         log.info(existingCustomer.toString());
+    }
+
+    @Override
+    public void saveAddressesRepository(Address address) {
+        addressesRepository.save(address);
     }
 }

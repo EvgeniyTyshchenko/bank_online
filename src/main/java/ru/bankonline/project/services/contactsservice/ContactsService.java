@@ -9,4 +9,6 @@ public interface ContactsService {
     List<Contact> getAllCustomerContactsDetails();
 
     void updateContactsDetails(Integer passportSeries, Integer passportNumber, Contact contact);
+
+    void saveContactsRepository(Contact contact);
 }

@@ -11,11 +11,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import ru.bankonline.project.constants.Currency;
 import ru.bankonline.project.constants.Status;
 import ru.bankonline.project.entity.*;
-import ru.bankonline.project.repositories.CardsRepository;
 import ru.bankonline.project.repositories.CustomersRepository;
-import ru.bankonline.project.repositories.SavingsAccountsRepository;
-import ru.bankonline.project.repositories.TransactionsRepository;
+import ru.bankonline.project.services.cardsservice.CardsService;
 import ru.bankonline.project.services.customersservice.CustomersServiceImpl;
+import ru.bankonline.project.services.savingsaccountsservice.SavingsAccountsService;
+import ru.bankonline.project.services.transactionsservice.TransactionsService;
 import ru.bankonline.project.utils.exceptions.*;
 
 import java.math.BigDecimal;
@@ -34,11 +34,11 @@ class CustomersServiceImplTest {
     @Mock
     private CustomersRepository customersRepository;
     @Mock
-    private TransactionsRepository transactionsRepository;
+    private TransactionsService transactionsService;
     @Mock
-    private CardsRepository cardsRepository;
+    private CardsService cardsService;
     @Mock
-    private SavingsAccountsRepository savingsAccountsRepository;
+    private SavingsAccountsService savingsAccountsService;
     @Mock
     private MailSender mailSender;
     @InjectMocks
@@ -94,7 +94,7 @@ class CustomersServiceImplTest {
         verify(customersRepository, times(1))
                 .findByPassportSeriesAndPassportNumber(customer.getPassportSeries(), customer.getPassportNumber());
         verify(customersRepository, times(1)).save(customer);
-        verify(transactionsRepository, times(1)).save(any());
+        verify(transactionsService, times(1)).transactionToRegisterNewCustomer(any());
 
         String expectedMessage = "Здравствуйте, " + customer.getFirstName() + " " + customer.getPatronymic() + "! \n"
                 + "Добро пожаловать в наш банк!";
@@ -132,7 +132,7 @@ class CustomersServiceImplTest {
         Integer passportNumberCustomer = customer.getPassportNumber();
 
         CustomerBlockingException exception = Assertions.assertThrows(CustomerBlockingException.class,
-                () -> customersService.deleteCustomer(passportSeriesCustomer, passportNumberCustomer));
+                () -> customersService.closingCustomer(passportSeriesCustomer, passportNumberCustomer));
         Assertions.assertEquals("Клиент заблокирован или удален!", exception.getMessage());
     }
 
@@ -147,7 +147,7 @@ class CustomersServiceImplTest {
         Integer passportNumberCustomer = customer.getPassportNumber();
 
         CustomerBlockingException exception = Assertions.assertThrows(CustomerBlockingException.class,
-                () -> customersService.deleteCustomer(passportSeriesCustomer, passportNumberCustomer));
+                () -> customersService.closingCustomer(passportSeriesCustomer, passportNumberCustomer));
         Assertions.assertEquals("Клиент заблокирован или удален!", exception.getMessage());
     }
 
@@ -158,11 +158,11 @@ class CustomersServiceImplTest {
 
         when(customersRepository.findByPassportSeriesAndPassportNumber(customer.getPassportSeries(), customer.getPassportNumber()))
                 .thenReturn(Optional.ofNullable(customer));
-        when(cardsRepository.findByCustomerId(customer.getCustomerId())).thenReturn(cards);
-        when(savingsAccountsRepository.findByCustomerId(customer.getCustomerId())).thenReturn(savingsAccounts);
+        when(cardsService.findByCustomerIdToCardsRepository(customer.getCustomerId())).thenReturn(cards);
+        when(savingsAccountsService.findByCustomerIdToSavingsAccountsRepository(customer.getCustomerId())).thenReturn(savingsAccounts);
 
         Customer foundCustomer = customersService.customerSearchByPassportSeriesAndNumber(customer.getPassportSeries(), customer.getPassportNumber());
-        Assertions.assertDoesNotThrow(() -> customersService.deleteCustomer(foundCustomer.getPassportSeries(), foundCustomer.getPassportNumber()));
+        Assertions.assertDoesNotThrow(() -> customersService.closingCustomer(foundCustomer.getPassportSeries(), foundCustomer.getPassportNumber()));
 
         Assertions.assertEquals(Status.CLOSED, customer.getStatus());
         Assertions.assertEquals(Status.CLOSED, cards.get(0).getStatus());
@@ -176,8 +176,8 @@ class CustomersServiceImplTest {
 
         when(customersRepository.findByPassportSeriesAndPassportNumber(customer.getPassportSeries(), customer.getPassportNumber()))
                 .thenReturn(Optional.ofNullable(customer));
-        when(cardsRepository.findByCustomerId(customer.getCustomerId())).thenReturn(cards);
-        when(savingsAccountsRepository.findByCustomerId(customer.getCustomerId())).thenReturn(savingsAccounts);
+        when(cardsService.findByCustomerIdToCardsRepository(customer.getCustomerId())).thenReturn(cards);
+        when(savingsAccountsService.findByCustomerIdToSavingsAccountsRepository(customer.getCustomerId())).thenReturn(savingsAccounts);
 
         Customer foundCustomer = customersService.customerSearchByPassportSeriesAndNumber(customer.getPassportSeries(),
                 customer.getPassportNumber());
@@ -185,7 +185,7 @@ class CustomersServiceImplTest {
         Integer passportNumberFoundCustomer = foundCustomer.getPassportNumber();
 
         CustomerBalanceNotZeroException exception = Assertions.assertThrows(CustomerBalanceNotZeroException.class, () -> customersService
-                .deleteCustomer(passportSeriesFoundCustomer, passportNumberFoundCustomer));
+                .closingCustomer(passportSeriesFoundCustomer, passportNumberFoundCustomer));
         Assertions.assertEquals("Ошибка в удалении аккаунта! У клиента " + customer.getLastName() + " "
                 + customer.getFirstName() + " " + customer.getPatronymic() + " на картах и/или счетах имеются денежные средства. " +
                 "Для корректного выполнения операции, Вам необходимо снять/перевести ВСЕ денежные средства со своих счетов и/или карт.",
@@ -265,7 +265,7 @@ class CustomersServiceImplTest {
     @Test
     void shouldCheckThatTheCustomerIsNotBlockedOrClosed() {
         customer.setStatus(Status.ACTIVE);
-        Assertions.assertDoesNotThrow(() -> customersService.checkIfTheCustomerIsBlockedOrDeleted(customer));
+        Assertions.assertDoesNotThrow(() -> customersService.checkIfTheCustomerIsBlockedOrClosed(customer));
     }
 
     @Test
@@ -273,7 +273,7 @@ class CustomersServiceImplTest {
         customer.setStatus(Status.BLOCKED);
 
         Assertions.assertThrows(CustomerBlockingException.class,
-                () -> customersService.checkIfTheCustomerIsBlockedOrDeleted(customer));
+                () -> customersService.checkIfTheCustomerIsBlockedOrClosed(customer));
     }
 
     @Test
@@ -281,6 +281,6 @@ class CustomersServiceImplTest {
         customer.setStatus(Status.CLOSED);
 
         Assertions.assertThrows(CustomerBlockingException.class,
-                () -> customersService.checkIfTheCustomerIsBlockedOrDeleted(customer));
+                () -> customersService.checkIfTheCustomerIsBlockedOrClosed(customer));
     }
 }

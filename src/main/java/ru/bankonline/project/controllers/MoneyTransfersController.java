@@ -28,7 +28,7 @@ public class MoneyTransfersController {
     @Operation(summary = "Перевод денежных средств между картами клиентов",
             description = "Необходимо вводить серию, номер паспорта, номер карты клиента (отправителя), " +
                     "номер карты клиента (получателя), а также количество денежных средств для перевода")
-    @PatchMapping("/{series}/{number}/{senderCardNumber}/{recipientCardNumber}/{amount}")
+    @PatchMapping("/cards/{series}/{number}/{senderCardNumber}/{recipientCardNumber}/{amount}")
     public ResponseEntity<String> transferBetweenCardsCustomers(@PathVariable Integer series, @PathVariable Integer number,
                                                                 @PathVariable String senderCardNumber,
                                                                 @PathVariable String recipientCardNumber, @PathVariable BigDecimal amount) {
@@ -60,7 +60,7 @@ public class MoneyTransfersController {
     @Operation(summary = "Перевод денежных средств между сберегательными счетами клиентов",
             description = "Необходимо вводить серию, номер паспорта, номер счета клиента (отправителя), " +
                     "номер счета клиента (получателя), а также количество денежных средств для перевода")
-    @PatchMapping("/{series}/{number}/{senderAccountNumber}/{recipientAccountNumber}/{amount}")
+    @PatchMapping("/savingsAccounts/{series}/{number}/{senderAccountNumber}/{recipientAccountNumber}/{amount}")
     public ResponseEntity<String> transferFromSavingsAccountToSavingsAccount(@PathVariable Integer series, @PathVariable Integer number,
                                                                              @PathVariable String senderAccountNumber,
                                                                              @PathVariable String recipientAccountNumber, @PathVariable BigDecimal amount) {

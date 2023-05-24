@@ -1,8 +1,6 @@
 package ru.bankonline.project.services.cardsservice;
 
-import org.springframework.transaction.annotation.Transactional;
 import ru.bankonline.project.entity.Card;
-import ru.bankonline.project.entity.Customer;
 
 import javax.mail.MessagingException;
 import java.math.BigDecimal;

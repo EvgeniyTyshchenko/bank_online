@@ -8,10 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.bankonline.project.entity.Card;
 import ru.bankonline.project.entity.Customer;
 import ru.bankonline.project.entity.SavingsAccount;
-import ru.bankonline.project.entity.Transaction;
 import ru.bankonline.project.constants.Currency;
 import ru.bankonline.project.constants.Status;
-import ru.bankonline.project.constants.TransactionType;
 import ru.bankonline.project.repositories.CardsRepository;
 import ru.bankonline.project.services.MailSender;
 import ru.bankonline.project.services.customersservice.CustomersService;
@@ -50,7 +48,7 @@ public class CardsServiceImpl implements CardsService {
     public void openCardToTheCustomer(Integer passportSeries, Integer passportNumber) {
         Customer existingCustomer = customersService
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
-        customersService.checkIfTheCustomerIsBlockedOrDeleted(existingCustomer);
+        customersService.checkIfTheCustomerIsBlockedOrClosed(existingCustomer);
 
         String uniqueCardNumber = UUID.randomUUID().toString().replaceAll("\\D", "0").substring(0, 16);
         String uniqueCVV = createRandomThreeDigitNumber();
@@ -60,7 +58,7 @@ public class CardsServiceImpl implements CardsService {
                 uniqueCVV, uniqueAccountNumber, BigDecimal.valueOf(0), Currency.RUB);
 
         cardsRepository.save(card);
-        transactionToOpenCard(existingCustomer);
+        transactionsService.transactionToOpenCard(existingCustomer);
 
         String message = "Здравствуйте, " + existingCustomer.getFirstName() + " " + existingCustomer.getPatronymic() + "! \n" +
                 "Ваша заявка принята. \n" +
@@ -80,14 +78,14 @@ public class CardsServiceImpl implements CardsService {
     public void closeCard(Integer passportSeries, Integer passportNumber, String cardNumber) {
         Customer existingCustomer = customersService
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
-        customersService.checkIfTheCustomerIsBlockedOrDeleted(existingCustomer);
+        customersService.checkIfTheCustomerIsBlockedOrClosed(existingCustomer);
 
         Card card = checkCardExists(existingCustomer, cardNumber);
         checkIfTheCardIsNotClosedOrBlocked(card);
 
-        checkCardBalance(card);
+        checkCardBalanceForClosing(card);
         enrichCardForClosure(card);
-        transactionToClose(existingCustomer.getCustomerId());
+        transactionsService.transactionToCloseCard(existingCustomer.getCustomerId());
 
         String message = "Здравствуйте, " + existingCustomer.getFirstName() + " " + existingCustomer.getPatronymic() + "! \n" +
                 "Закрытие карты произведено успешно! \n" +
@@ -104,12 +102,12 @@ public class CardsServiceImpl implements CardsService {
     public void blockCard(Integer passportSeries, Integer passportNumber, String cardNumber) {
         Customer existingCustomer = customersService
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
-        customersService.checkIfTheCustomerIsBlockedOrDeleted(existingCustomer);
+        customersService.checkIfTheCustomerIsBlockedOrClosed(existingCustomer);
 
         Card card = checkCardExists(existingCustomer, cardNumber);
         checkIfTheCardIsNotClosedOrBlocked(card);
         enrichCardForBlocking(card);
-        transactionToBlock(existingCustomer.getCustomerId(), card);
+        transactionsService.transactionToBlockCard(existingCustomer.getCustomerId(), card);
         log.info("Блокировка карты. Номер:" + card.getCardNumber());
     }
 
@@ -118,12 +116,12 @@ public class CardsServiceImpl implements CardsService {
     public void unlockCard(Integer passportSeries, Integer passportNumber, String cardNumber) {
         Customer existingCustomer = customersService
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
-        customersService.checkIfTheCustomerIsBlockedOrDeleted(existingCustomer);
+        customersService.checkIfTheCustomerIsBlockedOrClosed(existingCustomer);
 
         Card card = checkCardExists(existingCustomer, cardNumber);
         checkIfTheCardIsClosedOrActive(card);
         enrichCardForUnlock(card);
-        transactionToUnlock(existingCustomer.getCustomerId(), card);
+        transactionsService.transactionToUnlockCard(existingCustomer.getCustomerId(), card);
         log.info("Разблокировка карты. Номер:" + card.getCardNumber());
     }
 
@@ -132,11 +130,11 @@ public class CardsServiceImpl implements CardsService {
     public String checkBalance(Integer passportSeries, Integer passportNumber, String cardNumber) {
         Customer existingCustomer = customersService
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
-        customersService.checkIfTheCustomerIsBlockedOrDeleted(existingCustomer);
+        customersService.checkIfTheCustomerIsBlockedOrClosed(existingCustomer);
 
         Card card = checkCardExists(existingCustomer, cardNumber);
         checkIfTheCardIsNotClosedOrBlocked(card);
-        transactionBalanceRequest(existingCustomer, card);
+        transactionsService.cardBalanceRequestTransaction(existingCustomer, card);
         log.info("Проверка баланса карты. Номер:" + card.getCardNumber());
         return String.format("Баланс: %.2f %s", card.getBalance(), card.getCurrency().toString());
     }
@@ -147,7 +145,7 @@ public class CardsServiceImpl implements CardsService {
                                      String senderCardNumber, String recipientCardNumber, BigDecimal amount) {
         Customer senderCustomer = customersService
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
-        customersService.checkIfTheCustomerIsBlockedOrDeleted(senderCustomer);
+        customersService.checkIfTheCustomerIsBlockedOrClosed(senderCustomer);
 
         Card senderCard = checkCardExists(senderCustomer, senderCardNumber);
         checkIfTheCardIsNotClosedOrBlocked(senderCard);
@@ -158,10 +156,10 @@ public class CardsServiceImpl implements CardsService {
 
         if (senderCard.getBalance().compareTo(amount) >= 0) {
             senderCard.setBalance(senderCard.getBalance().subtract(amount));
-            moneySendingToTheCardTransaction(senderCustomer, senderCard, recipientCard, amount);
+            transactionsService.moneySendingToTheCardTransaction(senderCustomer, senderCard, recipientCard, amount);
 
             recipientCard.setBalance(recipientCard.getBalance().add(amount));
-            moneyReceiptToTheCardTransaction(recipientCustomer, senderCard, recipientCard, amount);
+            transactionsService.moneyReceiptToTheCardTransaction(recipientCustomer, senderCard, recipientCard, amount);
             cardsRepository.save(senderCard);
             cardsRepository.save(recipientCard);
 
@@ -178,7 +176,7 @@ public class CardsServiceImpl implements CardsService {
                                                  String senderCardNumber, String recipientSavingsAccountNumber, BigDecimal amount) {
         Customer senderCustomer = customersService
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
-        customersService.checkIfTheCustomerIsBlockedOrDeleted(senderCustomer);
+        customersService.checkIfTheCustomerIsBlockedOrClosed(senderCustomer);
 
         Card senderCard = checkCardExists(senderCustomer, senderCardNumber);
         checkIfTheCardIsNotClosedOrBlocked(senderCard);
@@ -190,10 +188,10 @@ public class CardsServiceImpl implements CardsService {
 
         if (senderCard.getBalance().compareTo(amount) >= 0) {
             senderCard.setBalance(senderCard.getBalance().subtract(amount));
-            moneySendingToTheAccountTransaction(senderCustomer, senderCard, recipientAccountExisting, amount);
+            transactionsService.moneySendingToTheAccountTransaction(senderCustomer, senderCard, recipientAccountExisting, amount);
 
             recipientAccountExisting.setBalance(recipientAccountExisting.getBalance().add(amount));
-            moneyReceiptToTheAccountTransaction(recipientCustomer, senderCard, recipientAccountExisting, amount);
+            transactionsService.moneyReceiptToTheAccountTransaction(recipientCustomer, senderCard, recipientAccountExisting, amount);
             cardsRepository.save(senderCard);
             savingsAccountsService.saveRepositorySavingsAccounts(recipientAccountExisting);
             log.info("Перевод денежных средств с карты на сберегательный счет. Номер счета карты: "
@@ -209,7 +207,7 @@ public class CardsServiceImpl implements CardsService {
     public Card getCardDetails(Integer passportSeries, Integer passportNumber, String cardNumber) {
         Customer existingCustomer = customersService
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
-        customersService.checkIfTheCustomerIsBlockedOrDeleted(existingCustomer);
+        customersService.checkIfTheCustomerIsBlockedOrClosed(existingCustomer);
 
         log.info("Запрос информации по карте: " + cardNumber);
         return checkCardExists(existingCustomer, cardNumber);
@@ -243,30 +241,18 @@ public class CardsServiceImpl implements CardsService {
         }
     }
 
-    private static void checkIfTheCardIsClosedOrActive(Card card) {
+    private void checkIfTheCardIsClosedOrActive(Card card) {
         if (card.getStatus() == Status.CLOSED || card.getStatus() == Status.ACTIVE) {
             throw new ClosingCardException("Данная карта закрыта или активна! " +
                     "Убедитесь, что Вы ввели правильные реквизиты карты!");
         }
     }
 
-    private void checkCardBalance(Card card) {
+    private void checkCardBalanceForClosing(Card card) {
         if (card.getBalance().compareTo(BigDecimal.ZERO) != 0) {
             throw new ClosingCardException("Ошибка в закрытии карты! Пожалуйста, убедитесь, что баланс равен 0. " +
                     "Вы можете сделать заявку на снятие денег в кассе, снять деньги в банкомате или же перевести оставшуюся сумму на другой счет.");
         }
-    }
-
-    private void moneySendingToTheCardTransaction(Customer senderCustomer, Card senderCard, Card recipientCard, BigDecimal amount) {
-        Transaction transaction = new Transaction(senderCustomer.getCustomerId(), senderCard.getAccountNumber(), recipientCard.getAccountNumber(),
-                amount, senderCard.getCurrency(), TransactionType.OUTTRANSFER, LocalDateTime.now());
-        transactionsService.saveTransactionsRepository(transaction);
-    }
-
-    private void moneyReceiptToTheCardTransaction(Customer recipientCustomer, Card senderCard, Card recipientCard, BigDecimal amount) {
-        Transaction transaction = new Transaction(recipientCustomer.getCustomerId(), senderCard.getAccountNumber(), recipientCard.getAccountNumber(),
-                amount, senderCard.getCurrency(), TransactionType.INTRANSFER, LocalDateTime.now());
-        transactionsService.saveTransactionsRepository(transaction);
     }
 
     private void enrichCardForUnlock(Card card) {
@@ -285,48 +271,6 @@ public class CardsServiceImpl implements CardsService {
         card.setStatus(Status.BLOCKED);
         card.setUpdateDate(LocalDateTime.now());
         cardsRepository.save(card);
-    }
-
-    private void transactionToClose(Integer customerId) {
-        Transaction transaction = new Transaction(customerId, "[closure]", "[closure]",
-                BigDecimal.valueOf(0), Currency.RUB, TransactionType.CLOSECARD, LocalDateTime.now());
-        transactionsService.saveTransactionsRepository(transaction);
-    }
-
-    private void transactionToUnlock(Integer customerId, Card card) {
-        Transaction transaction = new Transaction(customerId, "[unblocking]", "[unblocking]",
-                card.getBalance(), Currency.RUB, TransactionType.UNLOCKINGCARD, LocalDateTime.now());
-        transactionsService.saveTransactionsRepository(transaction);
-    }
-
-    private void transactionToBlock(Integer customerId, Card card) {
-        Transaction transaction = new Transaction(customerId, "[blocking]", "[blocking]",
-                card.getBalance(), Currency.RUB, TransactionType.BLOCKINGCARD, LocalDateTime.now());
-        transactionsService.saveTransactionsRepository(transaction);
-    }
-
-    private void transactionToOpenCard(Customer customer) {
-        Transaction transaction = new Transaction(customer.getCustomerId(), "[discovery]", "[discovery]",
-                BigDecimal.valueOf(0), Currency.RUB, TransactionType.OPENCARD, LocalDateTime.now());
-        transactionsService.saveTransactionsRepository(transaction);
-    }
-
-    private void transactionBalanceRequest(Customer customer, Card card) {
-        Transaction transaction = new Transaction(customer.getCustomerId(), "[card balance request]", "[card balance request]",
-                card.getBalance(), Currency.RUB, TransactionType.CHECKBALANCE, LocalDateTime.now());
-        transactionsService.saveTransactionsRepository(transaction);
-    }
-
-    private void moneySendingToTheAccountTransaction(Customer senderCustomer, Card senderCard, SavingsAccount recipientAccount, BigDecimal amount) {
-        Transaction transaction = new Transaction(senderCustomer.getCustomerId(), senderCard.getAccountNumber(), recipientAccount.getAccountNumber(),
-                amount, senderCard.getCurrency(), TransactionType.OUTTRANSFER, LocalDateTime.now());
-        transactionsService.saveTransactionsRepository(transaction);
-    }
-
-    private void moneyReceiptToTheAccountTransaction(Customer recipientCustomer, Card senderCard, SavingsAccount recipientAccount, BigDecimal amount) {
-        Transaction transaction = new Transaction(recipientCustomer.getCustomerId(), senderCard.getAccountNumber(), recipientAccount.getAccountNumber(),
-                amount, senderCard.getCurrency(), TransactionType.INTRANSFER, LocalDateTime.now());
-        transactionsService.saveTransactionsRepository(transaction);
     }
 
     private String createRandomThreeDigitNumber() {

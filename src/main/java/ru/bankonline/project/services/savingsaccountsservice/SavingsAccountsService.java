@@ -5,6 +5,7 @@ import ru.bankonline.project.entity.SavingsAccount;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 public interface SavingsAccountsService {
     void openSavingAccountToTheCustomer(Integer passportSeries, Integer passportNumber);
@@ -30,4 +31,6 @@ public interface SavingsAccountsService {
     List<SavingsAccount> findAllToSavingsAccountsRepository();
 
     List<SavingsAccount> findByCustomerIdToSavingsAccountsRepository(Integer customerId);
+
+    Optional<SavingsAccount> findByIdToSavingsAccountsRepository(Integer accountId);
 }

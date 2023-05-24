@@ -15,9 +15,8 @@ import ru.bankonline.project.BankOnlineApplication;
 import ru.bankonline.project.dto.AddressDTO;
 import ru.bankonline.project.entity.Address;
 import ru.bankonline.project.entity.Customer;
-import ru.bankonline.project.repositories.AddressesRepository;
-import ru.bankonline.project.repositories.CustomersRepository;
 import ru.bankonline.project.services.addressesservice.AddressesService;
+import ru.bankonline.project.services.customersservice.CustomersService;
 import ru.bankonline.project.utils.validators.AddressValidator;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -28,15 +27,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AddressesControllerTest {
 
     @Mock
-    private AddressesService addressesService;
-    @Mock
     private AddressValidator addressValidator;
     @Mock
     private ModelMapper modelMapper;
     @Autowired
-    private CustomersRepository customersRepository;
+    private CustomersService customersService;
     @Autowired
-    private AddressesRepository addressesRepository;
+    private AddressesService addressesService;
     @Autowired
     private MockMvc mockMvc;
 
@@ -45,8 +42,8 @@ class AddressesControllerTest {
         Address addressOne = new Address("Россия", "Москва", "ул.Заречная", "2/1", 117);
         Address addressTwo = new Address("Россия", "Краснодар", "ул.Верхняя", "27/3", 12);
 
-        addressesRepository.save(addressOne);
-        addressesRepository.save(addressTwo);
+        addressesService.saveAddressesRepository(addressOne);
+        addressesService.saveAddressesRepository(addressTwo);
 
         mockMvc.perform(get("/addresses/getAll"))
                 .andExpect(status().isOk())
@@ -70,7 +67,7 @@ class AddressesControllerTest {
         Address address = new Address("Россия", "Москва", "ул.Заречная", "2/1", 117);
         customer.setAddress(address);
 
-        customersRepository.save(customer);
+        customersService.saveCustomersRepository(customer);
 
         ObjectMapper objectMapper = new ObjectMapper();
         AddressDTO addressDTO = new AddressDTO("Россия", "Рязань", "ул.Верхняя", "7/1",116);

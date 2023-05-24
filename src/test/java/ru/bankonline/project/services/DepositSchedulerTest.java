@@ -10,9 +10,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import ru.bankonline.project.constants.Currency;
 import ru.bankonline.project.constants.Status;
 import ru.bankonline.project.entity.SavingsAccount;
-import ru.bankonline.project.repositories.SavingsAccountsRepository;
-import ru.bankonline.project.repositories.TransactionsRepository;
+import ru.bankonline.project.services.savingsaccountsservice.SavingsAccountsService;
 import ru.bankonline.project.services.scheduler.DepositScheduler;
+import ru.bankonline.project.services.transactionsservice.TransactionsService;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -27,9 +27,9 @@ import static org.mockito.Mockito.when;
 class DepositSchedulerTest {
 
     @Mock
-    private SavingsAccountsRepository savingsAccountsRepository;
+    private SavingsAccountsService savingsAccountsService;
     @Mock
-    private TransactionsRepository transactionsRepository;
+    private TransactionsService transactionsService;
     @InjectMocks
     private DepositScheduler depositScheduler;
 
@@ -38,12 +38,12 @@ class DepositSchedulerTest {
         LocalDate openingDate = LocalDate.now().minusMonths(1);
         SavingsAccount account = new SavingsAccount(1, 1, "45856595231240006963", BigDecimal.valueOf(1_000),
                 Currency.RUB, Status.ACTIVE, openingDate.atStartOfDay(), LocalDateTime.now().minusMonths(1));
-        when(savingsAccountsRepository.findAll()).thenReturn(List.of(account));
-        when(savingsAccountsRepository.findById(account.getAccountId())).thenReturn(Optional.of(account));
+        when(savingsAccountsService.findAllToSavingsAccountsRepository()).thenReturn(List.of(account));
+        when(savingsAccountsService.findByIdToSavingsAccountsRepository(account.getAccountId())).thenReturn(Optional.of(account));
         depositScheduler.deposit();
 
         BigDecimal expectedBalance = new BigDecimal("1004.17");
-        SavingsAccount updatedAccount = savingsAccountsRepository.findById(account.getAccountId()).orElse(null);
+        SavingsAccount updatedAccount = savingsAccountsService.findByIdToSavingsAccountsRepository(account.getAccountId()).orElse(null);
         Assertions.assertNotNull(updatedAccount);
         Assertions.assertEquals(expectedBalance, updatedAccount.getBalance());
         log.info("Начисление процентов на счет " + account.getAccountNumber());

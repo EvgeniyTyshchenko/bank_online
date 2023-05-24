@@ -40,12 +40,17 @@ public class ContactsServiceImpl implements ContactsService {
     @Transactional
     public void updateContactsDetails(Integer passportSeries, Integer passportNumber, Contact contact) {
         Customer existingCustomer = customersService.customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
-        customersService.checkIfTheCustomerIsBlockedOrDeleted(existingCustomer);
+        customersService.checkIfTheCustomerIsBlockedOrClosed(existingCustomer);
         existingCustomer.getContactDetails().setPhoneNumber(contact.getPhoneNumber());
         existingCustomer.getContactDetails().setEmail(contact.getEmail());
 
         existingCustomer.setUpdateDate(LocalDateTime.now());
         customersService.saveCustomersRepository(existingCustomer);
         log.info(existingCustomer.toString());
+    }
+
+    @Override
+    public void saveContactsRepository(Contact contact) {
+        contactsRepository.save(contact);
     }
 }

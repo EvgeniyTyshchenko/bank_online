@@ -11,10 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import ru.bankonline.project.dto.CustomerDTO;
-import ru.bankonline.project.services.cardsservice.CardsService;
 import ru.bankonline.project.services.customersservice.CustomersService;
-import ru.bankonline.project.services.savingsaccountsservice.SavingsAccountsService;
-import ru.bankonline.project.services.transactionsservice.TransactionsService;
 import ru.bankonline.project.utils.validators.CustomerValidator;
 import ru.bankonline.project.utils.validators.FullCustomerValidator;
 
@@ -65,7 +62,7 @@ public class CustomersController {
     @Operation(summary = "Обновление информации о клиенте",
             description = "Необходимо вводить серию и номер паспорта клиента, у которого необходимо обновить " +
                     "информацию, далее, заполнить поля в формате JSON")
-    @PatchMapping("/series/{series}/number/{number}")
+    @PatchMapping("/update/series/{series}/number/{number}")
     public ResponseEntity<HttpStatus> updateCustomer(@PathVariable Integer series, @PathVariable Integer number,
                                                      @RequestBody CustomerDTO customerDTO, BindingResult bindingResult) {
         log.info("Обновление клиента в базе по серии {} и номеру {} паспорта", series, number);
@@ -74,13 +71,13 @@ public class CustomersController {
         return ResponseEntity.ok(HttpStatus.OK);
     }
 
-    @Operation(summary = "Удаление учетной записи клиента",
+    @Operation(summary = "Закрытие учетной записи клиента",
             description = "Необходимо вводить серию и номер паспорта клиента, которого необходимо удалить")
-    @DeleteMapping("/series/{series}/number/{number}")
-    public ResponseEntity<HttpStatus> deleteCustomer(@PathVariable Integer series,
+    @PatchMapping("/close/series/{series}/number/{number}")
+    public ResponseEntity<HttpStatus> closingCustomer(@PathVariable Integer series,
                                                      @PathVariable Integer number) {
         log.info("Удаление клиента по серии {} и номеру {} паспорта", series, number);
-        customersService.deleteCustomer(series, number);
+        customersService.closingCustomer(series, number);
         return ResponseEntity.ok(HttpStatus.OK);
     }
 

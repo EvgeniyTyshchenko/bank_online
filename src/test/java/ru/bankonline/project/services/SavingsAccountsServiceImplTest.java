@@ -11,12 +11,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import ru.bankonline.project.constants.Currency;
 import ru.bankonline.project.constants.Status;
 import ru.bankonline.project.entity.*;
-import ru.bankonline.project.repositories.CardsRepository;
 import ru.bankonline.project.repositories.SavingsAccountsRepository;
-import ru.bankonline.project.repositories.TransactionsRepository;
-import ru.bankonline.project.services.cardsservice.CardsService;
 import ru.bankonline.project.services.customersservice.CustomersService;
 import ru.bankonline.project.services.savingsaccountsservice.SavingsAccountsServiceImpl;
+import ru.bankonline.project.services.transactionsservice.TransactionsService;
 import ru.bankonline.project.utils.exceptions.ClosingSavingsAccountException;
 import ru.bankonline.project.utils.exceptions.EnteringSavingsAccountDataException;
 import ru.bankonline.project.utils.exceptions.InsufficientFundsException;
@@ -36,13 +34,9 @@ class SavingsAccountsServiceImplTest {
     @Mock
     private SavingsAccountsRepository savingsAccountsRepository;
     @Mock
-    private CardsRepository cardsRepository;
-    @Mock
-    private TransactionsRepository transactionsRepository;
-    @Mock
     private CustomersService customersService;
     @Mock
-    private CardsService cardsService;
+    private TransactionsService transactionsService;
     @InjectMocks
     private SavingsAccountsServiceImpl savingsAccountsService;
     private static Customer customer;
@@ -58,10 +52,6 @@ class SavingsAccountsServiceImplTest {
                 Currency.RUB, Status.ACTIVE, LocalDateTime.now(), LocalDateTime.now());
         List<SavingsAccount> savingsAccounts = new ArrayList<>(List.of(savingsAccount));
         customer.setSavingsAccounts(savingsAccounts);
-        Card card = new Card(customer.getCustomerId(), "4560002599632215", "775", "51225643215884500048",
-                BigDecimal.valueOf(13_000), Currency.RUB);
-        List<Card> cards = new ArrayList<>(List.of(card));
-        customer.setCards(cards);
 
         newCustomer = new Customer();
         newCustomer.setPassportSeries(2154);
@@ -150,43 +140,6 @@ class SavingsAccountsServiceImplTest {
                 () -> savingsAccountsService.addMoneyToTheAccountThroughTheCashier(passportSeriesCustomer, passportNumberCustomer,
                         accountNumberCustomer, transferAmount));
     }
-
-//    @Test
-//    void shouldBeTransferFromTheCardToTheSavingsAccount() {
-//        newCustomer.getSavingsAccounts().get(0).setBalance(BigDecimal.valueOf(0));
-//        when(customersService.customerSearchByPassportSeriesAndNumber(customer.getPassportSeries(), customer.getPassportNumber()))
-//                .thenReturn(customer);
-//        when(cardsService.checkCardExists(customer, customer.getCards().get(0).getCardNumber()))
-//                .thenReturn(customer.getCards().get(0));
-//        when(customersService.getCustomerBySavingAccountNumber(newCustomer.getSavingsAccounts().get(0).getAccountNumber()))
-//                .thenReturn(newCustomer);
-//
-//        cardsService.transferFromCardToSavingsAccount(customer.getPassportSeries(), customer.getPassportNumber(),
-//                customer.getCards().get(0).getCardNumber(), newCustomer.getSavingsAccounts().get(0).getAccountNumber(),
-//                BigDecimal.valueOf(10_000));
-//        log.info("Перевод денежных средств с карты на сберегательный счет");
-//    }
-//
-//    @Test
-//    void shouldGetAnExceptionIfThereAreNotEnoughFundsToTransfer() {
-//        newCustomer.getSavingsAccounts().get(0).setBalance(BigDecimal.valueOf(0));
-//        when(customersService.customerSearchByPassportSeriesAndNumber(customer.getPassportSeries(), customer.getPassportNumber()))
-//                .thenReturn(customer);
-//        when(cardsService.checkCardExists(customer, customer.getCards().get(0).getCardNumber()))
-//                .thenReturn(customer.getCards().get(0));
-//        when(customersService.getCustomerBySavingAccountNumber(newCustomer.getSavingsAccounts().get(0).getAccountNumber()))
-//                .thenReturn(newCustomer);
-//
-//        Integer passportSeriesCustomer = customer.getPassportSeries();
-//        Integer passportNumberCustomer = customer.getPassportNumber();
-//        String cardNumberCustomer = customer.getCards().get(0).getCardNumber();
-//        String accountNumberNewCustomer = newCustomer.getSavingsAccounts().get(0).getAccountNumber();
-//        BigDecimal balanceCustomerMoreThanAcceptable = customer.getCards().get(0).getBalance().add(BigDecimal.valueOf(1_000));
-//
-//        Assertions.assertThrows(InsufficientFundsException.class,
-//                () -> cardsService.transferFromCardToSavingsAccount(passportSeriesCustomer, passportNumberCustomer,
-//                        cardNumberCustomer, accountNumberNewCustomer, balanceCustomerMoreThanAcceptable));
-//    }
 
     @Test
     void shouldCheckTheBalance() {

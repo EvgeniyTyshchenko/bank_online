@@ -8,4 +8,6 @@ public interface AddressesService {
     List<Address> getAllCustomerAddresses();
 
     void updateAddress(Integer passportSeries, Integer passportNumber, Address address);
+
+    void saveAddressesRepository(Address address);
 }
