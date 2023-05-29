@@ -284,7 +284,7 @@ GET: http://localhost:8080/transactions/series/1111/number/222333
 
 
 ### Общее покрытие проекта тестами: 91 %
-
-
+![image](https://github.com/EvgeniyTyshchenko/bank_online_project/assets/113645139/3331bba8-decf-4001-95a1-852a5c43a667)
+![image](https://github.com/EvgeniyTyshchenko/bank_online_project/assets/113645139/9fab2a3e-1fef-4847-9f6c-5571677169b2)
 
 ### Контроль качества кода производился с помощью SonarQube.
