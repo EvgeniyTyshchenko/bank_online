@@ -13,6 +13,9 @@ import ru.bankonline.project.utils.exceptions.NotFoundInBaseException;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/***
+ * Сервис для работы с контактами
+ */
 @Slf4j
 @Service
 @Transactional(readOnly = true)
@@ -27,6 +30,11 @@ public class ContactsServiceImpl implements ContactsService {
         this.customersService = customersService;
     }
 
+    /***
+     * Получает все контактные данные клиентов
+     * @return список всех контактов
+     * @throws NotFoundInBaseException если список контактов пуст
+     */
     @Override
     public List<Contact> getAllCustomerContactsDetails() {
         List<Contact> contacts = contactsRepository.findAll();
@@ -36,6 +44,12 @@ public class ContactsServiceImpl implements ContactsService {
         return contacts;
     }
 
+    /***
+     * Обновляет контактные данные клиента
+     * @param passportSeries серия паспорта
+     * @param passportNumber номер паспорта
+     * @param contact новые контактные данные клиента
+     */
     @Override
     @Transactional
     public void updateContactsDetails(Integer passportSeries, Integer passportNumber, Contact contact) {
@@ -49,6 +63,10 @@ public class ContactsServiceImpl implements ContactsService {
         log.info(existingCustomer.toString());
     }
 
+    /***
+     * Сохраняет контактные данные в репозиторий
+     * @param contact контакты, которые нужно сохранить
+     */
     @Override
     public void saveContactsRepository(Contact contact) {
         contactsRepository.save(contact);

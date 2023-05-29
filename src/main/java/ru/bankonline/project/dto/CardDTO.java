@@ -9,6 +9,9 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+/***
+ * Класс, представляющий DTO (Data Transfer Object) для карты
+ */
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -22,10 +25,22 @@ public class CardDTO implements DTO {
     private BigDecimal balance;
     private Currency currency;
 
+    /***
+     * Преобразует объект Card в объект CardDTO с помощью ModelMapper
+     * @param card объект Card
+     * @param modelMapper экземпляр класса ModelMapper для преобразования
+     * @return объект CardDTO
+     */
     public static CardDTO convertCardToDTO(Card card, ModelMapper modelMapper) {
         return modelMapper.map(card, CardDTO.class);
     }
 
+    /***
+     * Преобразует список объектов Card в список объектов CardDTO с помощью ModelMapper
+     * @param cards список объектов Card
+     * @param modelMapper экземпляр класса ModelMapper для преобразования
+     * @return список объектов CardDTO
+     */
     public static List<CardDTO> convertListCardsToDTO(List<Card> cards, ModelMapper modelMapper) {
         List<CardDTO> cardDTOs = new ArrayList<>();
         for (Card card : cards) {

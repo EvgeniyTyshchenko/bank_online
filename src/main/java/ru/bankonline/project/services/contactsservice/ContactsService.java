@@ -4,6 +4,9 @@ import ru.bankonline.project.entity.Contact;
 
 import java.util.List;
 
+/***
+ * Интерфейс ContactsService предоставляет методы для работы с контактами клиентов
+ */
 public interface ContactsService {
 
     List<Contact> getAllCustomerContactsDetails();

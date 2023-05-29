@@ -134,11 +134,11 @@ class CardsServiceImplTest {
 
     @Test
     void shouldBeSuccessfulTransferBetweenTheCards() {
+        customer.getCards().get(0).setStatus(Status.ACTIVE);
         when(customersService.customerSearchByPassportSeriesAndNumber(customer.getPassportSeries(), customer.getPassportNumber()))
                 .thenReturn(customer);
         when(customersService.getCustomerByCardNumber(newCustomer.getCards().get(0).getCardNumber()))
                 .thenReturn(newCustomer);
-        customer.getCards().get(0).setStatus(Status.ACTIVE);
 
         cardsService.transferBetweenCards(customer.getPassportSeries(), customer.getPassportNumber(),
                 customer.getCards().get(0).getCardNumber(), newCustomer.getCards().get(0).getCardNumber(),
@@ -172,7 +172,7 @@ class CardsServiceImplTest {
                 .thenReturn(customer);
         when(customersService.getCustomerBySavingAccountNumber(customer.getSavingsAccounts().get(0).getAccountNumber()))
                 .thenReturn(customer);
-        when(savingsAccountsService.checkSavingAccountExists(customer, customer.getSavingsAccounts().get(0).getAccountNumber()))
+        when(savingsAccountsService.checkWhetherTheSavingsAccountBelongsToTheCustomer(customer, customer.getSavingsAccounts().get(0).getAccountNumber()))
                 .thenReturn(customer.getSavingsAccounts().get(0));
 
         cardsService.transferFromCardToSavingsAccount(customer.getPassportSeries(), customer.getPassportNumber(),
@@ -232,7 +232,7 @@ class CardsServiceImplTest {
         EnteringCardDataException exception = Assertions.assertThrows(EnteringCardDataException.class, () -> {
             cardsService.checkBalance(passportSeriesCustomer, passportNumberCustomer, cardNumber);
         });
-        Assertions.assertEquals("Номер карты, который вы вводите отсутствует у клиента "
+        Assertions.assertEquals("Номер карты, который Вы вводите отсутствует у клиента "
                 + customer.getLastName() + " " + customer.getFirstName() + " " + customer.getPatronymic()
                 + " Проверьте реквизиты карты и попробуйте снова.", exception.getMessage());
     }

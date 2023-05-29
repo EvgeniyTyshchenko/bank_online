@@ -7,10 +7,14 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
+/***
+ * Интерфейс SavingsAccountsService предоставляет методы для работы со сберегательными счетами
+ */
 public interface SavingsAccountsService {
+
     void openSavingAccountToTheCustomer(Integer passportSeries, Integer passportNumber);
 
-    String closeAccountAndWithdrawMoneyThroughCashier(Integer passportSeries, Integer passportNumber, String accountNumber);
+    String closeSavingsAccount(Integer passportSeries, Integer passportNumber, String accountNumber);
 
     String addMoneyToTheAccountThroughTheCashier(Integer passportSeries, Integer passportNumber,
                                                  String accountNumber, BigDecimal amount);
@@ -22,13 +26,15 @@ public interface SavingsAccountsService {
 
     void checkIfTheSavingAccountIsNotClosedOrBlocked(SavingsAccount savingsAccount);
 
-    SavingsAccount checkSavingAccountExists(Customer customer, String accountNumber);
+    SavingsAccount checkWhetherTheSavingsAccountBelongsToTheCustomer(Customer customer, String accountNumber);
 
     void checkIfThereIsMoneyOnTheSavingAccount(SavingsAccount savingsAccount);
 
     void saveRepositorySavingsAccounts(SavingsAccount savingsAccount);
 
     List<SavingsAccount> findAllToSavingsAccountsRepository();
+
+    void closeAllSavingsAccountsInTheList(List<SavingsAccount> savingsAccounts);
 
     List<SavingsAccount> findByCustomerIdToSavingsAccountsRepository(Integer customerId);
 

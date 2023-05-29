@@ -3,7 +3,6 @@ package ru.bankonline.project.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -16,8 +15,6 @@ import ru.bankonline.project.constants.Status;
 import ru.bankonline.project.dto.CustomerDTO;
 import ru.bankonline.project.entity.*;
 import ru.bankonline.project.services.customersservice.CustomersService;
-import ru.bankonline.project.utils.validators.CustomerValidator;
-import ru.bankonline.project.utils.validators.FullCustomerValidator;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -33,10 +30,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class ControllerAdvisorTest {
 
-    @Mock
-    private FullCustomerValidator fullCustomerValidator;
-    @Mock
-    private CustomerValidator customerValidator;
     @Autowired
     private ModelMapper modelMapper;
     @Autowired
@@ -61,7 +54,7 @@ class ControllerAdvisorTest {
 
     @Test
     void shouldHandleCustomerMissingFromDBException() throws Exception {
-        String errorMessage = "Клиент отсутсвует в базе!";
+        String errorMessage = "Клиент отсутствует в базе!";
 
         mockMvc.perform(get("/customers/series/1234/number/567890"))
                 .andExpect(status().isNotFound())
@@ -95,7 +88,7 @@ class ControllerAdvisorTest {
 
         CustomerDTO newCustomerDTO = CustomerDTO.convertToDTOCustomerWithAddressAndContacts(newCustomer, modelMapper);
 
-        mockMvc.perform(patch("/customers/series/{series}/number/{number}",
+        mockMvc.perform(patch("/customers/update/series/{series}/number/{number}",
                         customer.getPassportSeries(), customer.getPassportNumber())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(newCustomerDTO)))
@@ -139,7 +132,7 @@ class ControllerAdvisorTest {
 
         String errorMessage = "Паспорт с указанными серией и номером уже есть в базе.";
 
-        mockMvc.perform(patch("/customers/series/{series}/number/{number}",
+        mockMvc.perform(patch("/customers/update/series/{series}/number/{number}",
                         customer.getPassportSeries(), customer.getPassportNumber())
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(objectMapper.writeValueAsString(customerDTO)))

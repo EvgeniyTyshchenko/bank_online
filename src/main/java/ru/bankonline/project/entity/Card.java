@@ -9,6 +9,9 @@ import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/***
+ * Класс, представляющий сущность "Карта"
+ */
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -57,6 +60,15 @@ public class Card {
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
     private LocalDateTime updateDate;
 
+    /***
+     * Конструктор для создания объекта Card
+     * @param customerId ID клиента
+     * @param cardNumber номер карты
+     * @param cvv CVV
+     * @param accountNumber номер счета
+     * @param balance баланс
+     * @param currency валюта
+     */
     public Card(Integer customerId, String cardNumber, String cvv,
                 String accountNumber, BigDecimal balance, Currency currency) {
         this.customerId = customerId;

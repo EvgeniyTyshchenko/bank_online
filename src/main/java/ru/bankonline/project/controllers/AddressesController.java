@@ -17,6 +17,9 @@ import java.util.List;
 
 import static ru.bankonline.project.utils.exceptions.ErrorResponse.checkIfThereErrorInTheUpdate;
 
+/***
+ * Контроллер для работы с адресами клиентов
+ */
 @Slf4j
 @RestController
 @RequestMapping("/addresses")
@@ -34,6 +37,10 @@ public class AddressesController {
         this.modelMapper = modelMapper;
     }
 
+    /***
+     * Получает все адреса клиентов банка
+     * @return список адресов клиентов
+     */
     @Operation(summary = "Получение всех адресов клиентов банка")
     @GetMapping(value = "/getAll")
     public ResponseEntity<List<AddressDTO>> getAllAddresses() {
@@ -41,6 +48,14 @@ public class AddressesController {
                 modelMapper));
     }
 
+    /***
+     * Обновляет адрес действующего клиента по серии и номеру паспорта
+     * @param series серия паспорта
+     * @param number номер паспорта
+     * @param addressDTO новый адрес клиента
+     * @param bindingResult результаты проверки валидации данных адреса
+     * @return статус 200 в случае успешного обновления адреса
+     */
     @Operation(summary = "Обновление адреса клиента",
             description = "Необходимо вводить серию и номер паспорта клиента, у которого необходимо обновить " +
                     "информацию, далее, заполнить поля в формате JSON")

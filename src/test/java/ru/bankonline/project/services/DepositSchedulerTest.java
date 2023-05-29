@@ -34,13 +34,14 @@ class DepositSchedulerTest {
     private DepositScheduler depositScheduler;
 
     @Test
-    void shouldReceiveInterestAccrual() {
+    void shouldPerformInterestAccrualOnSavingsAccounts() {
         LocalDate openingDate = LocalDate.now().minusMonths(1);
         SavingsAccount account = new SavingsAccount(1, 1, "45856595231240006963", BigDecimal.valueOf(1_000),
                 Currency.RUB, Status.ACTIVE, openingDate.atStartOfDay(), LocalDateTime.now().minusMonths(1));
+
         when(savingsAccountsService.findAllToSavingsAccountsRepository()).thenReturn(List.of(account));
         when(savingsAccountsService.findByIdToSavingsAccountsRepository(account.getAccountId())).thenReturn(Optional.of(account));
-        depositScheduler.deposit();
+        depositScheduler.performInterestAccrualOnSavingsAccounts();
 
         BigDecimal expectedBalance = new BigDecimal("1004.17");
         SavingsAccount updatedAccount = savingsAccountsService.findByIdToSavingsAccountsRepository(account.getAccountId()).orElse(null);

@@ -2,7 +2,6 @@ package ru.bankonline.project.controllers;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,7 +13,6 @@ import ru.bankonline.project.constants.Status;
 import ru.bankonline.project.entity.Customer;
 import ru.bankonline.project.entity.SavingsAccount;
 import ru.bankonline.project.services.customersservice.CustomersService;
-import ru.bankonline.project.services.savingsaccountsservice.SavingsAccountsService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -30,8 +28,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 class SavingsAccountsControllerTest {
 
-    @Mock
-    private SavingsAccountsService savingsAccountsService;
     @Autowired
     private CustomersService customersService;
     @Autowired
@@ -62,7 +58,7 @@ class SavingsAccountsControllerTest {
     }
 
     @Test
-    void shouldDeleteTheSavingAccountFromTheCustomer() throws Exception {
+    void shouldCloseTheCustomerSavingAccountAndWithdrawMoneyThroughCashier() throws Exception {
         String result = "Со сберегательного счета произведено полное списание денежных средств. " +
                 "Клиенту требуется получить деньги в кассе.";
         customersService.saveCustomersRepository(customer);

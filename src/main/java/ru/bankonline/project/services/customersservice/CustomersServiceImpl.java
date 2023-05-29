@@ -21,6 +21,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+/***
+ * Сервис для работы с клиентами
+ */
 @Slf4j
 @Service
 @Transactional(readOnly = true)
@@ -43,10 +46,14 @@ public class CustomersServiceImpl implements CustomersService {
         this.mailSender = mailSender;
     }
 
+    /***
+     * Добавляет нового клиента
+     * @param customer объект Customer, содержащий данные о клиенте
+     */
     @Override
     @Transactional
     public void addNewCustomer(Customer customer) {
-        isPassportExists(customer.getPassportSeries(), customer.getPassportNumber());
+        checkTheExistenceOfPassportDataInTheDatabase(customer.getPassportSeries(), customer.getPassportNumber());
         enrichCustomerToActivate(customer);
         customersRepository.save(customer);
         transactionsService.transactionToRegisterNewCustomer(customer.getCustomerId());
@@ -59,13 +66,27 @@ public class CustomersServiceImpl implements CustomersService {
                 + customer.getFirstName() + " " + customer.getPatronymic());
     }
 
+    /***
+     * Получает информацию о клиенте по серии и номеру паспорта
+     * @param passportSeries серия паспорта
+     * @param passportNumber номер паспорта
+     * @return объект Customer
+     * @throws CustomerMissingFromDBException если клиент не найден в базе данных
+     */
     @Override
     public Customer customerSearchByPassportSeriesAndNumber(Integer passportSeries, Integer passportNumber) {
         log.info("Поиск клиента по серии {} и номеру {} паспорта", passportSeries, passportNumber);
         return customersRepository.findByPassportSeriesAndPassportNumber(passportSeries, passportNumber)
-                .orElseThrow(() -> new CustomerMissingFromDBException("Клиент отсутсвует в базе!"));
+                .orElseThrow(() -> new CustomerMissingFromDBException("Клиент отсутствует в базе!"));
     }
 
+    /***
+     * Закрывает учетную запись клиента, а также реализуется закрытие всех банковских карт и сберегательных счетов
+     * указанного клиента
+     * @param passportSeries серия паспорта
+     * @param passportNumber номер паспорта
+     * @throws CustomerBalanceNotZeroException если у клиента на картах и/или сберегательных счета имеются денежные средства
+     */
     @Override
     @Transactional
     public void closingCustomer(Integer passportSeries, Integer passportNumber) {
@@ -76,24 +97,30 @@ public class CustomersServiceImpl implements CustomersService {
         List<SavingsAccount> savingsAccounts = savingsAccountsService
                 .findByCustomerIdToSavingsAccountsRepository(customer.getCustomerId());
 
-        boolean hasBalanceOnCard = checkIfHasBalanceOnCard(cards);
-        boolean hasBalanceOnSavingsAccount = checkIfHasBalanceOnSavingsAccount(savingsAccounts);
+        boolean hasMoneyOnCard = checkIfThereIsMoneyOnTheCards(cards);
+        boolean hasMoneyOnSavingsAccount = checkIfThereIsMoneyInSavingsAccounts(savingsAccounts);
 
-        if (hasBalanceOnCard || hasBalanceOnSavingsAccount) {
-            throw new CustomerBalanceNotZeroException("Ошибка в удалении аккаунта! У клиента " + customer.getLastName() + " "
+        if (hasMoneyOnCard || hasMoneyOnSavingsAccount) {
+            throw new CustomerBalanceNotZeroException("Ошибка в закрытии аккаунта! У клиента " + customer.getLastName() + " "
                     + customer.getFirstName() + " " + customer.getPatronymic() + " на картах и/или счетах имеются денежные средства. " +
                     "Для корректного выполнения операции, Вам необходимо снять/перевести ВСЕ денежные средства со своих счетов и/или карт.");
         } else {
-            closeCards(cards);
-            closeSavingsAccounts(savingsAccounts);
+            cardsService.closeAllCardsInTheList(cards);
+            savingsAccountsService.closeAllSavingsAccountsInTheList(savingsAccounts);
         }
         enrichCustomerToClose(customer);
-        transactionsService.transactionToDeleteCustomer(customer.getCustomerId());
+        transactionsService.transactionToCloseCustomer(customer.getCustomerId());
 
-        log.info("Клиент {} удален", customer.getLastName() + " "
+        log.info("Учетная запись клиента {} закрыта", customer.getLastName() + " "
                 + customer.getFirstName() + " " + customer.getPatronymic());
     }
 
+    /***
+     * Обновляет учетную запись клиента
+     * @param passportSeries серия паспорта
+     * @param passportNumber номер паспорта
+     * @param customer объект Customer с обновленной информацией
+     */
     @Override
     @Transactional
     public void updateCustomer(Integer passportSeries, Integer passportNumber, Customer customer) {
@@ -107,39 +134,79 @@ public class CustomersServiceImpl implements CustomersService {
 
         existingCustomer.setUpdateDate(LocalDateTime.now());
         customersRepository.save(existingCustomer);
-        areThereDuplicatesOfPassportData(existingCustomer.getPassportSeries(), existingCustomer.getPassportNumber());
+        checkForDuplicatePassportData(existingCustomer.getPassportSeries(), existingCustomer.getPassportNumber());
 
         log.info("Клиент {} обновлен", customer.getLastName() + " "
                 + customer.getFirstName() + " " + customer.getPatronymic());
     }
 
+    /***
+     * Получает информацию о клиенте по номеру карты
+     * @param cardNumber номер карты
+     * @return объект Customer с необходимой информацией
+     * @throws CustomerMissingFromDBException если клиент не найден в базе данных банка
+     */
     @Override
     public Customer getCustomerByCardNumber(String cardNumber) {
         return customersRepository.findByCardNumber(cardNumber)
                 .orElseThrow(() -> new CustomerMissingFromDBException("По номеру карты: " + cardNumber + " клиент не найден!"));
     }
 
+    /***
+     * Получает информацию о клиенте по номеру сберегательного счета
+     * @param savingAccountNumber номер сберегательного счета
+     * @return объект Customer с необходимой информацией
+     * @throws CustomerMissingFromDBException если клиент не найден в базе данных банка
+     */
     @Override
     public Customer getCustomerBySavingAccountNumber(String savingAccountNumber) {
         return customersRepository.findBySavingAccountNumber(savingAccountNumber)
                 .orElseThrow(() -> new CustomerMissingFromDBException("По номеру сберегательного счета: " + savingAccountNumber + " клиент не найден!"));
     }
 
+    /***
+     * Проверяет на блокировку или закрытие клиента
+     * @param customer объект Customer
+     * @throws CustomerBlockingException если клиент blocked/closed
+     */
     @Override
     public void checkIfTheCustomerIsBlockedOrClosed(Customer customer) {
         if (customer.getStatus() == Status.BLOCKED || customer.getStatus() == Status.CLOSED) {
-            log.info("Клиент {} заблокирован или удален", customer.getLastName() + " "
+            log.info("Клиент {} заблокирован или закрыт", customer.getLastName() + " "
                     + customer.getFirstName() + " " + customer.getPatronymic());
-            throw new CustomerBlockingException("Клиент заблокирован или удален!");
+            throw new CustomerBlockingException("Клиент заблокирован или закрыт!");
         }
     }
 
+    /***
+     * Сохраняет клиента в репозиторий
+     * @param customer клиент, которого нужно сохранить
+     */
     @Override
     public void saveCustomersRepository(Customer customer) {
         customersRepository.save(customer);
     }
 
-    private boolean checkIfHasBalanceOnCard(List<Card> cards) {
+    /***
+     * Проверяет наличие серии и номера паспорта в базе данных банка
+     * @param passportSeries серия паспорта
+     * @param passportNumber номер паспорта
+     * @throws NotCreatedException если клиент с такими паспортными данными уже есть в базе
+     */
+    private void checkTheExistenceOfPassportDataInTheDatabase(Integer passportSeries, Integer passportNumber) {
+        Optional<Customer> existingCustomer = customersRepository.findByPassportSeriesAndPassportNumber(passportSeries, passportNumber);
+        if (existingCustomer.isPresent()) {
+            log.info("Клиент с серией паспорта {} и номером {} уже существует", passportSeries, passportNumber);
+            throw new NotCreatedException("Клиент с такими серией и номером паспорта уже существует!");
+        }
+    }
+
+    /***
+     * Проверяет наличие денег на картах
+     * @param cards список карт
+     * @return true, если на одной из карт есть деньги, иначе false
+     */
+    private boolean checkIfThereIsMoneyOnTheCards(List<Card> cards) {
         for (Card card : cards) {
             if (card.getBalance().compareTo(BigDecimal.ZERO) > 0) {
                 log.info("Количество денежных средств на карте > 0");
@@ -149,7 +216,12 @@ public class CustomersServiceImpl implements CustomersService {
         return false;
     }
 
-    private boolean checkIfHasBalanceOnSavingsAccount(List<SavingsAccount> savingsAccounts) {
+    /***
+     * Проверяет наличие денег на сберегательных счетах
+     * @param savingsAccounts список сберегательных счетов
+     * @return true, если на одном из сберегательных счетов есть деньги, иначе false
+     */
+    private boolean checkIfThereIsMoneyInSavingsAccounts(List<SavingsAccount> savingsAccounts) {
         for (SavingsAccount savingsAccount : savingsAccounts) {
             if (savingsAccount.getBalance().compareTo(BigDecimal.ZERO) > 0) {
                 log.info("Количество денежных средств на сберегательном счете > 0");
@@ -159,29 +231,24 @@ public class CustomersServiceImpl implements CustomersService {
         return false;
     }
 
-    private void closeCards(List<Card> cards) {
-        for (Card card : cards) {
-            card.setStatus(Status.CLOSED);
-            card.setUpdateDate(LocalDateTime.now());
-            cardsService.saveCardsRepository(card);
-        }
-    }
-
-    private void closeSavingsAccounts(List<SavingsAccount> savingsAccounts) {
-        for (SavingsAccount savingsAccount : savingsAccounts) {
-            savingsAccount.setStatus(Status.CLOSED);
-            savingsAccount.setUpdateDate(LocalDateTime.now());
-            savingsAccountsService.saveRepositorySavingsAccounts(savingsAccount);
-        }
-    }
-
+    /***
+     * Закрывает учетную запись клиента
+     * @param customer объект Customer
+     */
     private void enrichCustomerToClose(Customer customer) {
         customer.setStatus(Status.CLOSED);
         customer.setUpdateDate(LocalDateTime.now());
         customersRepository.save(customer);
     }
 
-    private void areThereDuplicatesOfPassportData(Integer passportSeries, Integer passportNumber) {
+    /***
+     * Проверяет наличие дублируемых паспортных данных в базе данных банка (предотвращает ситуацию, где менеджер банка
+     * ИЗМЕНЯЕТ серию и номер паспорта клиента, но ошибается в данных и пытается сохранить в базу, где такие серия и номер уже есть)
+     * @param passportSeries серия паспорта
+     * @param passportNumber номер паспорта
+     * @throws PassportDuplicateException если указанные серия и номер паспорта уже есть в базе данных банка
+     */
+    private void checkForDuplicatePassportData(Integer passportSeries, Integer passportNumber) {
         Integer duplicatesCount = customersRepository.findPassportDuplicates(passportSeries, passportNumber)
                 .orElseThrow(() -> new NotUpdatedException("Ошибка в обновлении!"));
 
@@ -191,14 +258,10 @@ public class CustomersServiceImpl implements CustomersService {
         }
     }
 
-    private void isPassportExists(Integer passportSeries, Integer passportNumber) {
-        Optional<Customer> existingCustomer = customersRepository.findByPassportSeriesAndPassportNumber(passportSeries, passportNumber);
-        if (existingCustomer.isPresent()) {
-            log.info("Клиент с серией паспорта {} и номером {} уже существует", passportSeries, passportNumber);
-            throw new NotCreatedException("Клиент с такими серией и номером паспорта уже существует!");
-        }
-    }
-
+    /***
+     * Активирует учетную запись клиента
+     * @param customer объект Customer
+     */
     private static void enrichCustomerToActivate(Customer customer) {
         customer.setStatus(Status.ACTIVE);
         customer.setCreateDate(LocalDateTime.now());

@@ -4,6 +4,9 @@ import lombok.*;
 
 import javax.persistence.*;
 
+/***
+ * Класс, представляющий сущность "Адрес"
+ */
 @NoArgsConstructor
 @Getter
 @Setter
@@ -33,6 +36,14 @@ public class Address {
     @Column(name = "apartment")
     private Integer apartment;
 
+    /***
+     * Конструктор для создания объекта Address
+     * @param country страна
+     * @param city город
+     * @param street улица
+     * @param house номер дома
+     * @param apartment номер квартиры
+     */
     public Address(String country, String city, String street, String house, Integer apartment) {
         this.country = country;
         this.city = city;

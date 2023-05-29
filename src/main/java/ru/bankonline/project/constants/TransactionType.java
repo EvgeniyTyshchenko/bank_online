@@ -2,11 +2,15 @@ package ru.bankonline.project.constants;
 
 import lombok.AllArgsConstructor;
 
+/***
+ * Перечисление типов транзакций, которые могут быть выполнены в банковской системе
+ * Каждый тип транзакции имеет своё описание
+ */
 @AllArgsConstructor
 public enum TransactionType {
 
     REGISTERCUSTOMER("Registering a new customer"),
-    DELETECUSTOMER("removalremoval"),
+    CLOSEDCUSTOMER("Closing customer"),
     OPENCARD("Opening the card"),
     CLOSECARD("Closing the card"),
     BLOCKINGCARD("Card blocking"),

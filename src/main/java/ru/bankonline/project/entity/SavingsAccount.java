@@ -9,6 +9,9 @@ import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/***
+ * Класс, представляющий сущность "Сберегательный счет"
+ */
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -51,6 +54,16 @@ public class SavingsAccount {
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
     private LocalDateTime updateDate;
 
+    /***
+     * Конструктор для создания объекта SavingsAccount
+     * @param customerId ID клиента
+     * @param accountNumber номер счета
+     * @param balance баланс
+     * @param currency валюта
+     * @param status статус
+     * @param openingDate дата открытия
+     * @param updateDate дата обновления
+     */
     public SavingsAccount(Integer customerId, String accountNumber, BigDecimal balance, Currency currency,
                           Status status, LocalDateTime openingDate, LocalDateTime updateDate) {
         this.customerId = customerId;

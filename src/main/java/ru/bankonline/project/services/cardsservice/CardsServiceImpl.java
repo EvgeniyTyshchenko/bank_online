@@ -22,6 +22,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+/***
+ * Сервис для работы с картами
+ */
 @Slf4j
 @Service
 @Transactional(readOnly = true)
@@ -43,6 +46,11 @@ public class CardsServiceImpl implements CardsService {
         this.mailSender = mailSender;
     }
 
+    /***
+     * Открывает новую карту и отправляет письмо на электронную почту клиенту банка
+     * @param passportSeries серия паспорта
+     * @param passportNumber номер паспорта
+     */
     @Override
     @Transactional
     public void openCardToTheCustomer(Integer passportSeries, Integer passportNumber) {
@@ -73,6 +81,12 @@ public class CardsServiceImpl implements CardsService {
         log.info("Открытие карты. Номер:" + card.getCardNumber());
     }
 
+    /***
+     * Закрывает карту и отправляет письмо на электронную почту клиенту банка
+     * @param passportSeries серия паспорта
+     * @param passportNumber номер паспорта
+     * @param cardNumber номер карты
+     */
     @Override
     @Transactional
     public void closeCard(Integer passportSeries, Integer passportNumber, String cardNumber) {
@@ -97,6 +111,12 @@ public class CardsServiceImpl implements CardsService {
         log.info("Закрытие карты. Номер:" + card.getCardNumber());
     }
 
+    /***
+     * Блокирует карту клиенту банка
+     * @param passportSeries серия паспорта
+     * @param passportNumber номер паспорта
+     * @param cardNumber номер карты
+     */
     @Override
     @Transactional
     public void blockCard(Integer passportSeries, Integer passportNumber, String cardNumber) {
@@ -111,6 +131,12 @@ public class CardsServiceImpl implements CardsService {
         log.info("Блокировка карты. Номер:" + card.getCardNumber());
     }
 
+    /***
+     * Разблокирует карту клиенту банка
+     * @param passportSeries серия паспорта
+     * @param passportNumber номер паспорта
+     * @param cardNumber номер карты
+     */
     @Override
     @Transactional
     public void unlockCard(Integer passportSeries, Integer passportNumber, String cardNumber) {
@@ -125,6 +151,13 @@ public class CardsServiceImpl implements CardsService {
         log.info("Разблокировка карты. Номер:" + card.getCardNumber());
     }
 
+    /***
+     * Проверяет баланс карты
+     * @param passportSeries серия паспорта
+     * @param passportNumber номер паспорта
+     * @param cardNumber номер карты
+     * @return сообщение с информацией баланса карты
+     */
     @Override
     @Transactional
     public String checkBalance(Integer passportSeries, Integer passportNumber, String cardNumber) {
@@ -139,6 +172,16 @@ public class CardsServiceImpl implements CardsService {
         return String.format("Баланс: %.2f %s", card.getBalance(), card.getCurrency().toString());
     }
 
+    /***
+     * Переводит денежные средства между картами клиентов банка
+     * @param passportSeries серия паспорта
+     * @param passportNumber номер паспорта
+     * @param senderCardNumber номер карты отправителя
+     * @param recipientCardNumber номер карты получателя
+     * @param amount количество
+     * @throws InsufficientFundsException исключение, которое может быть вызвано из-за недостаточности
+     * денежных средств у отправителя
+     */
     @Override
     @Transactional
     public void transferBetweenCards(Integer passportSeries, Integer passportNumber,
@@ -170,6 +213,16 @@ public class CardsServiceImpl implements CardsService {
         }
     }
 
+    /***
+     * Переводит денежные средства с карты на сберегательный счет
+     * @param passportSeries серия паспорта
+     * @param passportNumber номер паспорта
+     * @param senderCardNumber номер карты отправителя
+     * @param recipientSavingsAccountNumber номер сберегательного счета получателя
+     * @param amount количество
+     * @throws InsufficientFundsException исключение, которое может быть вызвано из-за недостаточности
+     * денежных средств у отправителя
+     */
     @Override
     @Transactional
     public void transferFromCardToSavingsAccount(Integer passportSeries, Integer passportNumber,
@@ -182,7 +235,7 @@ public class CardsServiceImpl implements CardsService {
         checkIfTheCardIsNotClosedOrBlocked(senderCard);
 
         Customer recipientCustomer = customersService.getCustomerBySavingAccountNumber(recipientSavingsAccountNumber);
-        SavingsAccount recipientAccountExisting = savingsAccountsService.checkSavingAccountExists(recipientCustomer, recipientSavingsAccountNumber);
+        SavingsAccount recipientAccountExisting = savingsAccountsService.checkWhetherTheSavingsAccountBelongsToTheCustomer(recipientCustomer, recipientSavingsAccountNumber);
         savingsAccountsService.checkIfTheSavingAccountIsNotClosedOrBlocked(recipientAccountExisting);
         savingsAccountsService.checkIfThereIsMoneyOnTheSavingAccount(recipientAccountExisting);
 
@@ -203,6 +256,13 @@ public class CardsServiceImpl implements CardsService {
         }
     }
 
+    /***
+     * Получает информацию о конкретной карте, идентифицируемой по серии, номеру паспорта клиента и номеру карты
+     * @param passportSeries серия паспорта
+     * @param passportNumber номер паспорта
+     * @param cardNumber номер карты
+     * @return ответ содержащий Card с реквизитами запрошенной карты
+     */
     @Override
     public Card getCardDetails(Integer passportSeries, Integer passportNumber, String cardNumber) {
         Customer existingCustomer = customersService
@@ -213,27 +273,52 @@ public class CardsServiceImpl implements CardsService {
         return checkCardExists(existingCustomer, cardNumber);
     }
 
+    /***
+     * Закрывает все карты
+     * @param cards список карт
+     */
     @Override
-    public void saveCardsRepository(Card card) {
-        cardsRepository.save(card);
+    public void closeAllCardsInTheList(List<Card> cards) {
+        for (Card card : cards) {
+            card.setStatus(Status.CLOSED);
+            card.setUpdateDate(LocalDateTime.now());
+            cardsRepository.save(card);
+        }
     }
 
+    /***
+     * Находит все карты, принадлежащие заданному идентификатору клиента
+     * @param customerId ID клиента
+     * @return список карт
+     */
     @Override
     public List<Card> findByCustomerIdToCardsRepository(Integer customerId) {
         return cardsRepository.findByCustomerId(customerId);
     }
 
+    /***
+     * Проверяет наличие карты у клиента банка
+     * @param customer клиент
+     * @param cardNumber номер карты
+     * @return объект Card
+     * @throws EnteringCardDataException исключение, которое может быть вызвано из-за отсутствия указанной карты у клиента
+     */
     private Card checkCardExists(Customer customer, String cardNumber) {
         for (Card card : customer.getCards()) {
             if (card.getCardNumber().equals(cardNumber)) {
                 return card;
             }
         }
-        throw new EnteringCardDataException("Номер карты, который вы вводите отсутствует у клиента "
+        throw new EnteringCardDataException("Номер карты, который Вы вводите отсутствует у клиента "
                 + customer.getLastName() + " " + customer.getFirstName() + " " + customer.getPatronymic()
                 + " Проверьте реквизиты карты и попробуйте снова.");
     }
 
+    /***
+     * Проверяет на закрытие или блокировку карты у клиента
+     * @param card карта
+     * @throws ClosingCardException исключение, которое может быть вызвано по причине closed/blocked карты
+     */
     private void checkIfTheCardIsNotClosedOrBlocked(Card card) {
         if (card.getStatus() == Status.CLOSED || card.getStatus() == Status.BLOCKED) {
             throw new ClosingCardException("Данная карта закрыта или заблокирована! " +
@@ -241,6 +326,11 @@ public class CardsServiceImpl implements CardsService {
         }
     }
 
+    /***
+     * Проверяет на закрытие или активность карты у клиента
+     * @param card карта
+     * @throws ClosingCardException исключение, которое может быть вызвано по причине closed/active карты
+     */
     private void checkIfTheCardIsClosedOrActive(Card card) {
         if (card.getStatus() == Status.CLOSED || card.getStatus() == Status.ACTIVE) {
             throw new ClosingCardException("Данная карта закрыта или активна! " +
@@ -248,6 +338,11 @@ public class CardsServiceImpl implements CardsService {
         }
     }
 
+    /***
+     * Проверяет баланс карты для закрытия
+     * @param card карта
+     * @throws ClosingCardException исключение, которое может быть вызвано при закрытии карты (когда на карте остаются денежные средства)
+     */
     private void checkCardBalanceForClosing(Card card) {
         if (card.getBalance().compareTo(BigDecimal.ZERO) != 0) {
             throw new ClosingCardException("Ошибка в закрытии карты! Пожалуйста, убедитесь, что баланс равен 0. " +
@@ -255,24 +350,40 @@ public class CardsServiceImpl implements CardsService {
         }
     }
 
+    /***
+     * Реализует разблокировку карты
+     * @param card карта
+     */
     private void enrichCardForUnlock(Card card) {
         card.setStatus(Status.ACTIVE);
         card.setUpdateDate(LocalDateTime.now());
         cardsRepository.save(card);
     }
 
+    /***
+     * Реализует закрытие карты
+     * @param card карта
+     */
     private void enrichCardForClosure(Card card) {
         card.setStatus(Status.CLOSED);
         card.setUpdateDate(LocalDateTime.now());
         cardsRepository.save(card);
     }
 
+    /***
+     * Реализует блокировку карты
+     * @param card карта
+     */
     private void enrichCardForBlocking(Card card) {
         card.setStatus(Status.BLOCKED);
         card.setUpdateDate(LocalDateTime.now());
         cardsRepository.save(card);
     }
 
+    /***
+     * Создаёт случайное трёхзначное число
+     * @return строка, содержащая трёхзначное число
+     */
     private String createRandomThreeDigitNumber() {
         int leftLimit = 100;
         int rightLimit = 999;

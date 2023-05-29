@@ -2,6 +2,9 @@ package ru.bankonline.project.services.customersservice;
 
 import ru.bankonline.project.entity.Customer;
 
+/***
+ * Интерфейс CustomersService предоставляет методы для работы с клиентами
+ */
 public interface CustomersService {
 
     void addNewCustomer(Customer customer);

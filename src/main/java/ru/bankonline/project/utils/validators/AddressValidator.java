@@ -5,14 +5,28 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import ru.bankonline.project.dto.AddressDTO;
 
+/***
+ * Класс AddressValidator предназначен для проверки корректности заполнения полей AddressDTO
+ */
 @Component
 public class AddressValidator implements Validator {
 
+    /***
+     * Проверяет, поддерживает ли данный класс валидацию объектов
+     * указанного класса
+     * @param clazz класс объекта, который необходимо проверить
+     * @return true, если класс поддерживается, иначе - false
+     */
     @Override
     public boolean supports(Class<?> clazz) {
         return AddressDTO.class.equals(clazz);
     }
 
+    /***
+     * Проверяет корректность заполнения полей AddressDTO и добавляет ошибки в объект класса Errors
+     * @param target объект, который необходимо проверить
+     * @param errors объект класса Errors для добавления ошибок
+     */
     @Override
     public void validate(Object target, Errors errors) {
         AddressDTO addressDTO = (AddressDTO) target;

@@ -2,7 +2,6 @@ package ru.bankonline.project.controllers;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,7 +12,6 @@ import ru.bankonline.project.constants.TransactionType;
 import ru.bankonline.project.entity.*;
 import ru.bankonline.project.repositories.CustomersRepository;
 import ru.bankonline.project.repositories.TransactionsRepository;
-import ru.bankonline.project.services.transactionsservice.TransactionsService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -26,8 +24,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class TransactionsControllerTest {
 
-    @Mock
-    private TransactionsService transactionsService;
     @Autowired
     private CustomersRepository customersRepository;
     @Autowired

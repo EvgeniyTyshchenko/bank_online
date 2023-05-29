@@ -8,6 +8,11 @@ import org.springframework.context.annotation.Bean;
 @SpringBootApplication
 public class BankOnlineApplication {
 
+    /***
+     * Создаёт и возвращает экземпляр ModelMapper для
+     * маппинга объектов
+     * @return экземпляр ModelMapper
+     */
     @Bean
     public ModelMapper modelMapper() {
         return new ModelMapper();

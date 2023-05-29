@@ -3,7 +3,6 @@ package ru.bankonline.project.controllers;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,9 +17,7 @@ import ru.bankonline.project.entity.Card;
 import ru.bankonline.project.entity.Contact;
 import ru.bankonline.project.entity.Customer;
 import ru.bankonline.project.entity.SavingsAccount;
-import ru.bankonline.project.services.cardsservice.CardsService;
 import ru.bankonline.project.services.customersservice.CustomersService;
-import ru.bankonline.project.services.savingsaccountsservice.SavingsAccountsService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -36,10 +33,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 class MoneyTransfersControllerTest {
 
-    @Mock
-    private CardsService cardsService;
-    @Mock
-    private SavingsAccountsService savingsAccountsService;
     @Autowired
     private CustomersService customersService;
     @Autowired
@@ -87,7 +80,7 @@ class MoneyTransfersControllerTest {
                         customer.getCards().get(0).getCardNumber(), 5_000))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Перевод с карты: " + newCustomer.getCards().get(0).getCardNumber() + " на карту: " +
-                        customer.getCards().get(0).getCardNumber() + " - выполнен!"));
+                        customer.getCards().get(0).getCardNumber() + " - реализован!"));
     }
 
     @Test
@@ -135,6 +128,6 @@ class MoneyTransfersControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string("Перевод со счета: " +
                         customer.getSavingsAccounts().get(0).getAccountNumber() + " на счет: " +
-                        customer.getSavingsAccounts().get(1).getAccountNumber() + " - выполнен!"));
+                        customer.getSavingsAccounts().get(1).getAccountNumber() + " - произведен!"));
     }
 }

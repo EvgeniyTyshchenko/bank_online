@@ -12,6 +12,9 @@ import ru.bankonline.project.dto.DTO;
 import java.util.ArrayList;
 import java.util.List;
 
+/***
+ * Класс для формирования ответа об ошибке
+ */
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -21,6 +24,13 @@ public class ErrorResponse {
     private String message;
     private long timestamp;
 
+    /***
+     * Проверяет наличие ошибок при создании объекта
+     * @param bindingResult результат проверки
+     * @param validator валидатор данных
+     * @param dto объект передачи данных
+     * @throws NotCreatedException исключение, возникающее при ошибке создания объекта
+     */
     public static void checkIfThereErrorInTheCreation(BindingResult bindingResult, Validator validator, DTO dto) {
         validator.validate(dto, bindingResult);
         if (bindingResult.hasErrors()) {
@@ -29,6 +39,13 @@ public class ErrorResponse {
         }
     }
 
+    /***
+     * Проверяет наличие ошибок при обновлении объекта
+     * @param bindingResult результат проверки
+     * @param validator валидатор данных
+     * @param dto объект передачи данных
+     * @throws NotUpdatedException исключение, возникающее при ошибке обновления объекта
+     */
     public static void checkIfThereErrorInTheUpdate(BindingResult bindingResult, Validator validator, DTO dto) {
         validator.validate(dto, bindingResult);
         if (bindingResult.hasErrors()) {
@@ -37,6 +54,11 @@ public class ErrorResponse {
         }
     }
 
+    /***
+     * Получает сообщение об ошибке из результата проверки
+     * @param bindingResult результат проверки
+     * @return сообщение об ошибке
+     */
     public static String getErrorMessage(BindingResult bindingResult) {
         List<String> errorMessages = new ArrayList<>();
         for (FieldError error : bindingResult.getFieldErrors()) {

@@ -8,13 +8,16 @@ import ru.bankonline.project.entity.Transaction;
 import java.math.BigDecimal;
 import java.util.List;
 
+/***
+ * Интерфейс TransactionsService предоставляет методы для работы с транзакциями
+ */
 public interface TransactionsService {
 
     List<Transaction> getTransactionCustomer(Integer passportSeries, Integer passportNumber);
 
     void transactionToRegisterNewCustomer(Integer customerId);
 
-    void transactionToDeleteCustomer(Integer customerId);
+    void transactionToCloseCustomer(Integer customerId);
 
     void moneySendingToTheCardTransaction(Customer senderCustomer, Card senderCard, Card recipientCard, BigDecimal amount);
 
@@ -36,7 +39,7 @@ public interface TransactionsService {
 
     void savingsAccountBalanceRequestTransaction(Customer customer, SavingsAccount savingsAccount);
 
-    void transactionReplenishmentBalanceThroughTheBankCashDesk(Customer customer, SavingsAccount savingsAccount, BigDecimal amount);
+    void transactionOfReceiptOfFundsToSavingsAccountThroughTheBankCashDesk(Customer customer, SavingsAccount savingsAccount, BigDecimal amount);
 
     void transactionToCloseSavingsAccount(Integer customerId);
 
@@ -44,11 +47,11 @@ public interface TransactionsService {
 
     void transactionToOpenSavingAccount(Customer customer);
 
-    void transactionSendingFromAccountToAccount(Customer senderCustomer, SavingsAccount senderSavingsAccount,
-                                                SavingsAccount recipientSavingsAccount, BigDecimal amount);
+    void moneyTransferTransactionFromSavingsAccountToSavingsAccount(Customer senderCustomer, SavingsAccount senderSavingsAccount,
+                                                                    SavingsAccount recipientSavingsAccount, BigDecimal amount);
 
-    void transactionReceivingFromAccountToAccount(Customer recipientCustomer, SavingsAccount senderSavingsAccount,
-                                                  SavingsAccount recipientSavingsAccount, BigDecimal amount);
+    void transactionOfReceiptOfFundsFromSavingsAccountToSavingsAccount(Customer recipientCustomer, SavingsAccount senderSavingsAccount,
+                                                                       SavingsAccount recipientSavingsAccount, BigDecimal amount);
 
-    void transactionAccrualOfInterestOnTheDeposit(Integer customerId, SavingsAccount savingsAccount, BigDecimal amountAccruedInterest);
+    void transactionAccrualOfInterestOnTheSavingsAccount(Integer customerId, SavingsAccount savingsAccount, BigDecimal transferAmount);
 }

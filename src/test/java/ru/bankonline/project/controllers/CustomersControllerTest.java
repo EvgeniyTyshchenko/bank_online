@@ -3,7 +3,6 @@ package ru.bankonline.project.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -11,34 +10,27 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 import ru.bankonline.project.BankOnlineApplication;
 import ru.bankonline.project.constants.Currency;
 import ru.bankonline.project.constants.Status;
 import ru.bankonline.project.dto.CustomerDTO;
 import ru.bankonline.project.entity.*;
 import ru.bankonline.project.services.customersservice.CustomersService;
-import ru.bankonline.project.utils.validators.CustomerValidator;
-import ru.bankonline.project.utils.validators.FullCustomerValidator;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.springframework.test.annotation.DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(classes = BankOnlineApplication.class)
 @AutoConfigureMockMvc
-@DirtiesContext(classMode = BEFORE_EACH_TEST_METHOD)
 class CustomersControllerTest {
 
-    @Mock
-    private FullCustomerValidator fullCustomerValidator;
-    @Mock
-    private CustomerValidator customerValidator;
     @Autowired
     private ModelMapper modelMapper;
     @Autowired
@@ -67,6 +59,7 @@ class CustomersControllerTest {
     }
 
     @Test
+    @Transactional
     void shouldGetCustomerByPassportSeriesAndNumber() throws Exception {
         customersService.saveCustomersRepository(customer);
 
@@ -88,6 +81,7 @@ class CustomersControllerTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void shouldAddNewCustomer() throws Exception {
         CustomerDTO customerDTO = CustomerDTO.convertToDTOCustomerWithAddressAndContacts(customer, modelMapper);
 
@@ -98,6 +92,7 @@ class CustomersControllerTest {
     }
 
     @Test
+    @Transactional
     void shouldUpdateCustomer() throws Exception {
         customersService.saveCustomersRepository(customer);
         Customer newCustomer = new Customer(7745, 100055, "Тыщенко", "Евгений", "Владимирович", "12.07.1995",

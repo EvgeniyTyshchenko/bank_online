@@ -4,6 +4,9 @@ import lombok.*;
 
 import javax.persistence.*;
 
+/***
+ * Класс, представляющий сущность "Контакт"
+ */
 @Entity
 @Table(name = "contacts")
 @NoArgsConstructor
@@ -24,6 +27,11 @@ public class Contact {
     @Column(name = "email")
     private String email;
 
+    /***
+     * Конструктор для создания объекта Contact
+     * @param phoneNumber номер телефона
+     * @param email электронная почта
+     */
     public Contact(String phoneNumber, String email) {
         this.phoneNumber = phoneNumber;
         this.email = email;

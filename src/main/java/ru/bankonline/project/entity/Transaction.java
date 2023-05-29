@@ -9,6 +9,9 @@ import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/***
+ * Класс, представляющий сущность "Транзакция"
+ */
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -49,6 +52,16 @@ public class Transaction {
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSS")
     private LocalDateTime dateTimeTransaction;
 
+    /***
+     * Конструктор для создания объекта Transaction
+     * @param customerId ID клиента
+     * @param sendersAccountNumber номер счета отправителя
+     * @param recipientAccountNumber номер счета получателя
+     * @param amount количество
+     * @param currency валюта
+     * @param transactionType тип транзакции
+     * @param dateTimeTransaction дата и время транзакции
+     */
     public Transaction(Integer customerId, String sendersAccountNumber, String recipientAccountNumber,
                        BigDecimal amount, Currency currency, TransactionType transactionType,
                        LocalDateTime dateTimeTransaction) {

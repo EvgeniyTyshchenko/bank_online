@@ -8,6 +8,10 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 
 import java.util.Properties;
 
+/***
+ * Конфигурация для отправки электронной почты
+ * Ипользует значения из файла настроек application.properties
+ */
 @Configuration
 public class MailConfig {
 
@@ -29,6 +33,11 @@ public class MailConfig {
     @Value("${spring.mail.protocol}")
     private String debug;
 
+    /***
+     * Возвращает объект JavaMailSender для отправки электронных писем
+     * @return JavaMailSender объект, настроенный для отправки писем с помощью указанных параметров host, port,
+     * username, password.
+     */
     @Bean
     public JavaMailSender getMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();

@@ -6,6 +6,9 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+/***
+ * Класс MailSender для отправки электронных писем
+ */
 @Service
 public class MailSender {
 
@@ -19,6 +22,12 @@ public class MailSender {
         this.sender = mailSender;
     }
 
+    /***
+     * Реализует отправку электронного письма
+     * @param emailTo адрес электронной почты, на который следует отправить письмо
+     * @param subject тема письма
+     * @param message сообщение
+     */
     public void sendEmail(String emailTo, String subject, String message) {
         SimpleMailMessage mailMessage = new SimpleMailMessage();
 

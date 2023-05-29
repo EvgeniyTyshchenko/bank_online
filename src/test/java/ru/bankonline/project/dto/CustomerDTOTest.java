@@ -42,23 +42,50 @@ class CustomerDTOTest {
     void shouldConvertToCustomerWithAddressAndContacts() {
         Customer customer = CustomerDTO.convertToCustomerWithAddressAndContacts(customerDTO, modelMapper);
 
+        assertEquals(customerDTO.getPassportSeries(), customer.getPassportSeries());
         assertEquals(customerDTO.getPassportNumber(), customer.getPassportNumber());
         assertEquals(customerDTO.getLastName(), customer.getLastName());
+        assertEquals(customerDTO.getFirstName(), customer.getFirstName());
+        assertEquals(customerDTO.getPatronymic(), customer.getPatronymic());
+        assertEquals(customerDTO.getBirthday(), customer.getBirthday());
+        assertEquals(customerDTO.getAddressDTO().getCountry(), customer.getAddress().getCountry());
+        assertEquals(customerDTO.getAddressDTO().getCity(), customer.getAddress().getCity());
         assertEquals(customerDTO.getAddressDTO().getStreet(), customer.getAddress().getStreet());
+        assertEquals(customerDTO.getAddressDTO().getHouse(), customer.getAddress().getHouse());
+        assertEquals(customerDTO.getAddressDTO().getApartment(), customer.getAddress().getApartment());
         assertEquals(customerDTO.getContactDTO().getPhoneNumber(), customer.getContactDetails().getPhoneNumber());
+        assertEquals(customerDTO.getContactDTO().getEmail(), customer.getContactDetails().getEmail());
     }
 
     @Test
     void shouldConvertToDTOTheEntireCustomerAndCardsAndAccounts() {
         CustomerDTO customerDTO = CustomerDTO.convertToDTOTheEntireCustomerAndCardsAndAccounts(customer, modelMapper);
 
+        assertEquals(customer.getPassportSeries(), customerDTO.getPassportSeries());
         assertEquals(customer.getPassportNumber(), customerDTO.getPassportNumber());
         assertEquals(customer.getLastName(), customerDTO.getLastName());
+        assertEquals(customer.getFirstName(), customerDTO.getFirstName());
+        assertEquals(customer.getPatronymic(), customerDTO.getPatronymic());
+        assertEquals(customer.getAddress().getCountry(), customerDTO.getAddressDTO().getCountry());
+        assertEquals(customer.getAddress().getCity(), customerDTO.getAddressDTO().getCity());
         assertEquals(customer.getAddress().getStreet(), customerDTO.getAddressDTO().getStreet());
+        assertEquals(customer.getAddress().getHouse(), customerDTO.getAddressDTO().getHouse());
+        assertEquals(customer.getAddress().getApartment(), customerDTO.getAddressDTO().getApartment());
         assertEquals(customer.getContactDetails().getPhoneNumber(), customerDTO.getContactDTO().getPhoneNumber());
+        assertEquals(customer.getContactDetails().getEmail(), customerDTO.getContactDTO().getEmail());
+
+        assertEquals(customer.getCards().get(0).getCardNumber(), customerDTO.getCardDTO().get(0).getCardNumber());
+        assertEquals(customer.getCards().get(0).getCvv(), customerDTO.getCardDTO().get(0).getCvv());
         assertEquals(customer.getCards().get(0).getAccountNumber(), customerDTO.getCardDTO().get(0).getAccountNumber());
+        assertEquals(customer.getCards().get(0).getBalance(), customerDTO.getCardDTO().get(0).getBalance());
+        assertEquals(customer.getCards().get(0).getCurrency(), customerDTO.getCardDTO().get(0).getCurrency());
+
         assertEquals(customer.getSavingsAccounts().get(0).getAccountNumber(), customerDTO
                 .getSavingsAccountDTO().get(0).getAccountNumber());
+        assertEquals(customer.getSavingsAccounts().get(0).getBalance(), customerDTO
+                .getSavingsAccountDTO().get(0).getBalance());
+        assertEquals(customer.getSavingsAccounts().get(0).getCurrency(), customerDTO
+                .getSavingsAccountDTO().get(0).getCurrency());
     }
 
     @Test
@@ -66,8 +93,17 @@ class CustomerDTOTest {
         CustomerDTO customerDTO = CustomerDTO.convertToDTOCustomerWithAddressAndContacts(customer, modelMapper);
 
         assertEquals(customer.getPassportSeries(), customerDTO.getPassportSeries());
+        assertEquals(customer.getPassportNumber(), customerDTO.getPassportNumber());
+        assertEquals(customer.getLastName(), customerDTO.getLastName());
         assertEquals(customer.getFirstName(), customerDTO.getFirstName());
+        assertEquals(customer.getPatronymic(), customerDTO.getPatronymic());
+        assertEquals(customer.getBirthday(), customerDTO.getBirthday());
+        assertEquals(customer.getAddress().getCountry(), customerDTO.getAddressDTO().getCountry());
         assertEquals(customer.getAddress().getCity(), customerDTO.getAddressDTO().getCity());
+        assertEquals(customer.getAddress().getStreet(), customerDTO.getAddressDTO().getStreet());
+        assertEquals(customer.getAddress().getHouse(), customerDTO.getAddressDTO().getHouse());
+        assertEquals(customer.getAddress().getApartment(), customerDTO.getAddressDTO().getApartment());
+        assertEquals(customer.getContactDetails().getPhoneNumber(), customerDTO.getContactDTO().getPhoneNumber());
         assertEquals(customer.getContactDetails().getEmail(), customerDTO.getContactDTO().getEmail());
     }
 }

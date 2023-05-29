@@ -19,6 +19,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+/***
+ * Сервис для работы со сберегательными счетами
+ */
 @Slf4j
 @Service
 @Transactional(readOnly = true)
@@ -36,6 +39,11 @@ public class SavingsAccountsServiceImpl implements SavingsAccountsService {
         this.transactionsService = transactionsService;
     }
 
+    /***
+     * Открывает сберегательный счет клиенту
+     * @param passportSeries серия паспорта
+     * @param passportNumber номер паспорта
+     */
     @Override
     @Transactional
     public void openSavingAccountToTheCustomer(Integer passportSeries, Integer passportNumber) {
@@ -53,16 +61,23 @@ public class SavingsAccountsServiceImpl implements SavingsAccountsService {
         log.info("Открытие сберегательного счета. Номер счета: " + savingsAccount.getAccountNumber());
     }
 
+    /***
+     * Закрывает сберегательный счет и обнуляет баланс (денежные средства выдаются через кассу банка)
+     * @param passportSeries серия паспорта
+     * @param passportNumber номер паспорта
+     * @param accountNumber номер сберегательного счета
+     * @return сообщение об успешном списании денежных средств и необходимости клиенту получить деньги в кассе банка
+     */
     @Override
     @Transactional
-    public String closeAccountAndWithdrawMoneyThroughCashier(Integer passportSeries, Integer passportNumber, String accountNumber) {
+    public String closeSavingsAccount(Integer passportSeries, Integer passportNumber, String accountNumber) {
         Customer existingCustomer = customersService
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
         customersService.checkIfTheCustomerIsBlockedOrClosed(existingCustomer);
 
-        SavingsAccount savingsAccountExisting = checkSavingAccountExists(existingCustomer, accountNumber);
+        SavingsAccount savingsAccountExisting = checkWhetherTheSavingsAccountBelongsToTheCustomer(existingCustomer, accountNumber);
         checkIfTheSavingAccountIsNotClosedOrBlocked(savingsAccountExisting);
-        String result = checkSavingAccountBalance(existingCustomer, savingsAccountExisting);
+        String result = checkBalanceSavingAccountAndWriteOffTheMoney(existingCustomer, savingsAccountExisting);
         enrichSavingAccountForClosure(savingsAccountExisting);
         transactionsService.transactionToCloseSavingsAccount(existingCustomer.getCustomerId());
 
@@ -70,6 +85,14 @@ public class SavingsAccountsServiceImpl implements SavingsAccountsService {
         return result;
     }
 
+    /***
+     * Пополняет сберегательный счет через кассу банка
+     * @param passportSeries серия паспорта
+     * @param passportNumber номер паспорта
+     * @param accountNumber номер сберегательного счета
+     * @param amount количество
+     * @return баланс с учетом внесенных денежных средств через кассу банка
+     */
     @Override
     @Transactional
     public String addMoneyToTheAccountThroughTheCashier(Integer passportSeries, Integer passportNumber,
@@ -78,7 +101,7 @@ public class SavingsAccountsServiceImpl implements SavingsAccountsService {
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
         customersService.checkIfTheCustomerIsBlockedOrClosed(existingCustomer);
 
-        SavingsAccount savingsAccountExisting = checkSavingAccountExists(existingCustomer, accountNumber);
+        SavingsAccount savingsAccountExisting = checkWhetherTheSavingsAccountBelongsToTheCustomer(existingCustomer, accountNumber);
         checkIfTheSavingAccountIsNotClosedOrBlocked(savingsAccountExisting);
         checkIfThereIsMoneyOnTheSavingAccount(savingsAccountExisting);
 
@@ -86,13 +109,20 @@ public class SavingsAccountsServiceImpl implements SavingsAccountsService {
         BigDecimal newBalance = currentBalance.add(amount);
         savingsAccountExisting.setBalance(newBalance);
         savingsAccountsRepository.save(savingsAccountExisting);
-        transactionsService.transactionReplenishmentBalanceThroughTheBankCashDesk(existingCustomer, savingsAccountExisting, amount);
+        transactionsService.transactionOfReceiptOfFundsToSavingsAccountThroughTheBankCashDesk(existingCustomer, savingsAccountExisting, amount);
 
         log.info("Пополнение сберегательного счета через кассу. Номер счета: " + savingsAccountExisting.getAccountNumber()
                 + ", сумма: " + amount + savingsAccountExisting.getCurrency());
         return String.format("%.2f %s", savingsAccountExisting.getBalance(), savingsAccountExisting.getCurrency());
     }
 
+    /***
+     * Проверяет баланс сберегательного счета
+     * @param passportSeries серия паспорта
+     * @param passportNumber номер паспорта
+     * @param savingsAccountNumber номер сберегательного счета
+     * @return сообщение с актуальным балансом
+     */
     @Override
     @Transactional
     public String checkBalance(Integer passportSeries, Integer passportNumber, String savingsAccountNumber) {
@@ -100,7 +130,7 @@ public class SavingsAccountsServiceImpl implements SavingsAccountsService {
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
         customersService.checkIfTheCustomerIsBlockedOrClosed(existingCustomer);
 
-        SavingsAccount savingsAccountExisting = checkSavingAccountExists(existingCustomer, savingsAccountNumber);
+        SavingsAccount savingsAccountExisting = checkWhetherTheSavingsAccountBelongsToTheCustomer(existingCustomer, savingsAccountNumber);
         checkIfTheSavingAccountIsNotClosedOrBlocked(savingsAccountExisting);
         transactionsService.savingsAccountBalanceRequestTransaction(existingCustomer, savingsAccountExisting);
 
@@ -108,6 +138,15 @@ public class SavingsAccountsServiceImpl implements SavingsAccountsService {
         return String.format("Баланс: %.2f %s", savingsAccountExisting.getBalance(), savingsAccountExisting.getCurrency().toString());
     }
 
+    /***
+     * Переводит денежные средства между сберегательными счетами клиентов банка
+     * @param passportSeries серия паспорта
+     * @param passportNumber номер паспорта
+     * @param senderSavingsAccountNumber номер сберегательного счета отправителя
+     * @param recipientSavingsAccountNumber номер сберегательного счета получателя
+     * @param amount количество
+     * @throws InsufficientFundsException если недостаточно денежных средств у отправителя (для совершения транзакции)
+     */
     @Override
     @Transactional
     public void transferFromSavingsAccountToSavingsAccount(Integer passportSeries, Integer passportNumber,
@@ -116,31 +155,36 @@ public class SavingsAccountsServiceImpl implements SavingsAccountsService {
                 .customerSearchByPassportSeriesAndNumber(passportSeries, passportNumber);
         customersService.checkIfTheCustomerIsBlockedOrClosed(senderCustomer);
 
-        SavingsAccount accountSenderExists = checkSavingAccountExists(senderCustomer, senderSavingsAccountNumber);
+        SavingsAccount accountSenderExists = checkWhetherTheSavingsAccountBelongsToTheCustomer(senderCustomer, senderSavingsAccountNumber);
         checkIfTheSavingAccountIsNotClosedOrBlocked(accountSenderExists);
 
         Customer recipientCustomer = customersService.getCustomerBySavingAccountNumber(recipientSavingsAccountNumber);
-        SavingsAccount recipientAccountExisting = checkSavingAccountExists(recipientCustomer, recipientSavingsAccountNumber);
+        SavingsAccount recipientAccountExisting = checkWhetherTheSavingsAccountBelongsToTheCustomer(recipientCustomer, recipientSavingsAccountNumber);
         checkIfTheSavingAccountIsNotClosedOrBlocked(recipientAccountExisting);
         checkIfThereIsMoneyOnTheSavingAccount(recipientAccountExisting);
 
         if (accountSenderExists.getBalance().compareTo(amount) >= 0) {
             accountSenderExists.setBalance(accountSenderExists.getBalance().subtract(amount));
-            transactionsService.transactionSendingFromAccountToAccount(senderCustomer, accountSenderExists, recipientAccountExisting, amount);
+            transactionsService.moneyTransferTransactionFromSavingsAccountToSavingsAccount(senderCustomer, accountSenderExists, recipientAccountExisting, amount);
 
             recipientAccountExisting.setBalance(recipientAccountExisting.getBalance().add(amount));
-            transactionsService.transactionReceivingFromAccountToAccount(recipientCustomer, accountSenderExists, recipientAccountExisting, amount);
+            transactionsService.transactionOfReceiptOfFundsFromSavingsAccountToSavingsAccount(recipientCustomer, accountSenderExists, recipientAccountExisting, amount);
             savingsAccountsRepository.save(accountSenderExists);
             savingsAccountsRepository.save(recipientAccountExisting);
 
             log.info("Перевод между сберегательными счетами. Номер счета отправителя: " + accountSenderExists.getAccountNumber()
                     + ", номер счета получателя: " + recipientAccountExisting.getAccountNumber() + ", сумма: " + amount + accountSenderExists.getCurrency());
         } else {
-            throw new InsufficientFundsException("На сберегательном счете недостататочно денежных средств для совершения транзакции! " +
+            throw new InsufficientFundsException("На сберегательном счете недостаточно денежных средств для совершения транзакции! " +
                     "Пожалуйста, проверьте баланс и попробуйте снова.");
         }
     }
 
+    /***
+     * Проверяет на закрытие или блокировку сберегательного счета
+     * @param savingsAccount объект SavingsAccount
+     * @throws ClosingSavingsAccountException если сберегательный счет closed/blocked
+     */
     @Override
     public void checkIfTheSavingAccountIsNotClosedOrBlocked(SavingsAccount savingsAccount) {
         if (savingsAccount.getStatus() == Status.CLOSED || savingsAccount.getStatus() == Status.BLOCKED) {
@@ -149,8 +193,15 @@ public class SavingsAccountsServiceImpl implements SavingsAccountsService {
         }
     }
 
+    /***
+     * Проверяет принадлежность сберегательного счета клиенту
+     * @param customer объект Customer
+     * @param accountNumber номер сберегательного счета
+     * @return объект SavingsAccount
+     * @throws EnteringSavingsAccountDataException если указанный номер счета отсутствует у клиента банка
+     */
     @Override
-    public SavingsAccount checkSavingAccountExists(Customer customer, String accountNumber) {
+    public SavingsAccount checkWhetherTheSavingsAccountBelongsToTheCustomer(Customer customer, String accountNumber) {
         for (SavingsAccount savingsAccount : customer.getSavingsAccounts()) {
             if (savingsAccount.getAccountNumber().equals(accountNumber)) {
                 return savingsAccount;
@@ -161,6 +212,12 @@ public class SavingsAccountsServiceImpl implements SavingsAccountsService {
                 + " Проверьте реквизиты сберегательного счета и попробуйте снова.");
     }
 
+    /***
+     * Проверяет наличие денежных средств на сберегательном счете
+     * @param savingsAccount объект SavingsAccount
+     * @throws ViolationTermsDepositException если нарушаются условия сберегательного счета.
+     * Условия: при открытии сберегательного счета, клиент имеет право пополнить данный счет один раз.
+     */
     @Override
     public void checkIfThereIsMoneyOnTheSavingAccount(SavingsAccount savingsAccount) {
         if (savingsAccount.getBalance().compareTo(BigDecimal.ZERO) > 0) {
@@ -169,27 +226,65 @@ public class SavingsAccountsServiceImpl implements SavingsAccountsService {
         }
     }
 
+    /***
+     * Закрывает все сберегательные счета
+     * @param savingsAccounts список сберегательных счетов
+     */
     @Override
-    public void saveRepositorySavingsAccounts(SavingsAccount savingsAccount) {
-        savingsAccountsRepository.save(savingsAccount);
+    public void closeAllSavingsAccountsInTheList(List<SavingsAccount> savingsAccounts) {
+        for (SavingsAccount savingsAccount : savingsAccounts) {
+            savingsAccount.setStatus(Status.CLOSED);
+            savingsAccount.setUpdateDate(LocalDateTime.now());
+            savingsAccountsRepository.save(savingsAccount);
+        }
     }
 
-    @Override
-    public List<SavingsAccount> findAllToSavingsAccountsRepository() {
-        return savingsAccountsRepository.findAll();
-    }
-
+    /***
+     * Получает список сберегательных счетов, принадлежащих указанному идентификатору клиента
+     * @param customerId ID клиента
+     * @return список сберегательных счетов
+     */
     @Override
     public List<SavingsAccount> findByCustomerIdToSavingsAccountsRepository(Integer customerId) {
         return savingsAccountsRepository.findByCustomerId(customerId);
     }
 
+    /***
+     * Сохраняет сберегательный счет в репозиторий
+     * @param savingsAccount сберегательный счет, который нужно сохранить
+     */
+    @Override
+    public void saveRepositorySavingsAccounts(SavingsAccount savingsAccount) {
+        savingsAccountsRepository.save(savingsAccount);
+    }
+
+    /***
+     * Получает все сберегательные счета клиентов банка
+     * @return список сберегательных счетов
+     */
+    @Override
+    public List<SavingsAccount> findAllToSavingsAccountsRepository() {
+        return savingsAccountsRepository.findAll();
+    }
+
+    /***
+     * Получает сберегательный счет по указанному идентификатору
+     * @param accountId ID сберегательного счета
+     * @return объект Optional, содержащий найденный сберегательный счет или null, если счет не найден
+     */
     @Override
     public Optional<SavingsAccount> findByIdToSavingsAccountsRepository(Integer accountId) {
         return savingsAccountsRepository.findById(accountId);
     }
 
-    private String checkSavingAccountBalance(Customer customer, SavingsAccount savingsAccount) {
+    /***
+     * Проверяет баланс сберегательного счета и списывает деньги
+     * @param customer объект Customer
+     * @param savingsAccount объект SavingsAccount
+     * @return сообщение об успешном списании денежных средств со сберегательного счета
+     * и необходимости клиенту получить денежные средства в кассе банка
+     */
+    private String checkBalanceSavingAccountAndWriteOffTheMoney(Customer customer, SavingsAccount savingsAccount) {
         if (savingsAccount.getBalance().compareTo(BigDecimal.ZERO) != 0) {
             transactionsService.transactionWithdrawalMoneyFromSavingsAccountThroughCashier(customer, savingsAccount);
             savingsAccount.setBalance(savingsAccount.getBalance().subtract(savingsAccount.getBalance()));
@@ -199,6 +294,10 @@ public class SavingsAccountsServiceImpl implements SavingsAccountsService {
                 "Клиенту требуется получить деньги в кассе.";
     }
 
+    /***
+     * Закрывает сберегательный счет
+     * @param savingsAccount объект SavingsAccount
+     */
     private void enrichSavingAccountForClosure(SavingsAccount savingsAccount) {
         savingsAccount.setStatus(Status.CLOSED);
         savingsAccount.setUpdateDate(LocalDateTime.now());

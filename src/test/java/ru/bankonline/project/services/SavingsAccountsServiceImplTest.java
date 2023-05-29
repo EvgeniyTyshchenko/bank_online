@@ -68,7 +68,7 @@ class SavingsAccountsServiceImplTest {
     }
 
     @Test
-    void shouldOpenASavingsAccountToACustomer() {
+    void shouldOpenSavingsAccountToACustomer() {
         when(customersService.customerSearchByPassportSeriesAndNumber(customer.getPassportSeries(), customer.getPassportNumber()))
                 .thenReturn(customer);
 
@@ -81,7 +81,7 @@ class SavingsAccountsServiceImplTest {
         when(customersService.customerSearchByPassportSeriesAndNumber(customer.getPassportSeries(), customer.getPassportNumber()))
                 .thenReturn(customer);
 
-        savingsAccountsService.closeAccountAndWithdrawMoneyThroughCashier(customer.getPassportSeries(), customer.getPassportNumber(),
+        savingsAccountsService.closeSavingsAccount(customer.getPassportSeries(), customer.getPassportNumber(),
                 customer.getSavingsAccounts().get(0).getAccountNumber());
         log.info("Закрытие сберегательного счета");
     }
@@ -96,7 +96,7 @@ class SavingsAccountsServiceImplTest {
         String accountNumberNewCustomer = newCustomer.getSavingsAccounts().get(0).getAccountNumber();
 
         Assertions.assertThrows(EnteringSavingsAccountDataException.class,
-                () -> savingsAccountsService.closeAccountAndWithdrawMoneyThroughCashier(passportSeriesCustomer, passportNumberCustomer,
+                () -> savingsAccountsService.closeSavingsAccount(passportSeriesCustomer, passportNumberCustomer,
                         accountNumberNewCustomer));
     }
 
@@ -111,12 +111,12 @@ class SavingsAccountsServiceImplTest {
         String accountNumberCustomer = customer.getSavingsAccounts().get(0).getAccountNumber();
 
         Assertions.assertThrows(ClosingSavingsAccountException.class,
-                () -> savingsAccountsService.closeAccountAndWithdrawMoneyThroughCashier(
-                        passportSeriesCustomer, passportNumberCustomer, accountNumberCustomer));
+                () -> savingsAccountsService.closeSavingsAccount(passportSeriesCustomer, passportNumberCustomer,
+                        accountNumberCustomer));
     }
 
     @Test
-    void shouldTopUpTheAccountThroughTheCashier() {
+    void shouldAddMoneyToTheAccountThroughTheCashier() {
         newCustomer.getSavingsAccounts().get(0).setBalance(BigDecimal.valueOf(0));
         when(customersService.customerSearchByPassportSeriesAndNumber(newCustomer.getPassportSeries(), newCustomer.getPassportNumber()))
                 .thenReturn(newCustomer);

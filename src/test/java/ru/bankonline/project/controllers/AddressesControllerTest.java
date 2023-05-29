@@ -2,8 +2,6 @@ package ru.bankonline.project.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,7 +15,6 @@ import ru.bankonline.project.entity.Address;
 import ru.bankonline.project.entity.Customer;
 import ru.bankonline.project.services.addressesservice.AddressesService;
 import ru.bankonline.project.services.customersservice.CustomersService;
-import ru.bankonline.project.utils.validators.AddressValidator;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -26,10 +23,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class AddressesControllerTest {
 
-    @Mock
-    private AddressValidator addressValidator;
-    @Mock
-    private ModelMapper modelMapper;
     @Autowired
     private CustomersService customersService;
     @Autowired

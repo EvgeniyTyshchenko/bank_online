@@ -9,6 +9,9 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/***
+ * Класс, представляющий сущность "Клиент"
+ */
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -72,6 +75,17 @@ public class Customer {
     @JoinColumn(name = "customer_id")
     private List<SavingsAccount> savingsAccounts;
 
+    /***
+     * Конструктор для создания объекта Customer, с данными Address и Contact
+     * @param passportSeries серия паспорта
+     * @param passportNumber номер паспорта
+     * @param lastName фамилия
+     * @param firstName имя
+     * @param patronymic отчество
+     * @param birthday дата рождения
+     * @param address объект Address
+     * @param contactDetails объект Contact
+     */
     public Customer(Integer passportSeries, Integer passportNumber, String lastName, String firstName,
                     String patronymic, String birthday, Address address, Contact contactDetails) {
         this.passportSeries = passportSeries;

@@ -11,6 +11,9 @@ import ru.bankonline.project.services.transactionsservice.TransactionsService;
 
 import java.util.List;
 
+/***
+ * Контроллер для работы с транзакциями
+ */
 @Slf4j
 @RestController
 @RequestMapping("/transactions")
@@ -24,6 +27,12 @@ public class TransactionsController {
         this.transactionsService = transactionsService;
     }
 
+    /***
+     * Получает все транзакции клиента
+     * @param series серия паспорта
+     * @param number номер паспорта
+     * @return список транзакций по указанному клиенту
+     */
     @Operation(summary = "Получить все транзакции клиента",
             description = "Необходимо вводить серию и номер паспорта клиента")
     @GetMapping("/series/{series}/number/{number}")

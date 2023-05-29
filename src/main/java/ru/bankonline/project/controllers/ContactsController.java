@@ -17,6 +17,9 @@ import java.util.List;
 
 import static ru.bankonline.project.utils.exceptions.ErrorResponse.checkIfThereErrorInTheUpdate;
 
+/***
+ * Контроллер для работы с контактными данными клиентов
+ */
 @Slf4j
 @RestController
 @RequestMapping("/contacts")
@@ -34,6 +37,10 @@ public class ContactsController {
         this.modelMapper = modelMapper;
     }
 
+    /***
+     * Получает все контактные данные клиентов банка
+     * @return список контактных данных клиентов
+     */
     @Operation(summary = "Получение всех контактных данных клиентов банка")
     @GetMapping("/getAll")
     public ResponseEntity<List<ContactDTO>> getAllContactDetails() {
@@ -41,6 +48,14 @@ public class ContactsController {
                 modelMapper));
     }
 
+    /***
+     * Обновляет контактные данные действующего клиента по серии и номеру паспорта
+     * @param series серия паспорта
+     * @param number номер паспорта
+     * @param contactDTO новые контактные данные клиента
+     * @param bindingResult результаты проверки валидации данных
+     * @return статус 200 в случае успешного обновления контактных данных
+     */
     @Operation(summary = "Обновление контактных данных клиента",
             description = "Необходимо вводить серию и номер паспорта клиента, у которого необходимо обновить " +
                     "информацию, далее, заполнить поля в формате JSON")

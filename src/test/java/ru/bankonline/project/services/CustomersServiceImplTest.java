@@ -2,7 +2,7 @@ package ru.bankonline.project.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -52,8 +52,8 @@ class CustomersServiceImplTest {
     private static final String nonExistentCardNumber = "6000444433332222";
     private static final String nonExistentAccountNumber = "44441221456500007887";
 
-    @BeforeAll
-    static void setUp() {
+    @BeforeEach
+    void setUp() {
         customer = new Customer(4321, 987654, "Тыщенко", "Евгений", "Владимирович", "01.01.1968",
                 new Address("Россия", "Краснодар", "Российская", "95/д", 259),
                 new Contact("89881233223", "eugenityschenko@yandex.ru"));
@@ -122,7 +122,7 @@ class CustomersServiceImplTest {
     }
 
     @Test
-    void shouldBeAnExceptionWhenDeletingBlockedCustomer() {
+    void shouldBeAnExceptionWhenClosingBlockedCustomer() {
         customer.setStatus(Status.BLOCKED);
 
         when(customersRepository.findByPassportSeriesAndPassportNumber(customer.getPassportSeries(), customer.getPassportNumber()))
@@ -133,11 +133,11 @@ class CustomersServiceImplTest {
 
         CustomerBlockingException exception = Assertions.assertThrows(CustomerBlockingException.class,
                 () -> customersService.closingCustomer(passportSeriesCustomer, passportNumberCustomer));
-        Assertions.assertEquals("Клиент заблокирован или удален!", exception.getMessage());
+        Assertions.assertEquals("Клиент заблокирован или закрыт!", exception.getMessage());
     }
 
     @Test
-    void shouldBeAnExceptionWhenDeletingClosedCustomer() {
+    void shouldBeAnExceptionWhenDeletingAnAlreadyClosedCustomer() {
         customer.setStatus(Status.CLOSED);
 
         when(customersRepository.findByPassportSeriesAndPassportNumber(customer.getPassportSeries(), customer.getPassportNumber()))
@@ -148,11 +148,11 @@ class CustomersServiceImplTest {
 
         CustomerBlockingException exception = Assertions.assertThrows(CustomerBlockingException.class,
                 () -> customersService.closingCustomer(passportSeriesCustomer, passportNumberCustomer));
-        Assertions.assertEquals("Клиент заблокирован или удален!", exception.getMessage());
+        Assertions.assertEquals("Клиент заблокирован или закрыт!", exception.getMessage());
     }
 
     @Test
-    void shouldDeleteCustomer() {
+    void shouldCloseCustomerAccount() {
         customer.getCards().forEach(card -> card.setBalance(BigDecimal.ZERO));
         customer.getSavingsAccounts().forEach(savingsAccount -> savingsAccount.setBalance((BigDecimal.ZERO)));
 
@@ -160,20 +160,17 @@ class CustomersServiceImplTest {
                 .thenReturn(Optional.ofNullable(customer));
         when(cardsService.findByCustomerIdToCardsRepository(customer.getCustomerId())).thenReturn(cards);
         when(savingsAccountsService.findByCustomerIdToSavingsAccountsRepository(customer.getCustomerId())).thenReturn(savingsAccounts);
+        doNothing().when(cardsService).closeAllCardsInTheList(customer.getCards());
 
         Customer foundCustomer = customersService.customerSearchByPassportSeriesAndNumber(customer.getPassportSeries(), customer.getPassportNumber());
         Assertions.assertDoesNotThrow(() -> customersService.closingCustomer(foundCustomer.getPassportSeries(), foundCustomer.getPassportNumber()));
 
         Assertions.assertEquals(Status.CLOSED, customer.getStatus());
-        Assertions.assertEquals(Status.CLOSED, cards.get(0).getStatus());
-        Assertions.assertEquals(Status.CLOSED, savingsAccounts.get(0).getStatus());
         log.info(customer.getStatus().toString());
     }
 
     @Test
-    void shouldBeAnExceptionWhenDeletingIfThereIsMoneyOnCardOrSavingsAccount() {
-        customer.setStatus(Status.ACTIVE);
-
+    void shouldBeAnExceptionWhenClosingTheCustomerHavingMoneyOnTheCardOrSavingsAccount() {
         when(customersRepository.findByPassportSeriesAndPassportNumber(customer.getPassportSeries(), customer.getPassportNumber()))
                 .thenReturn(Optional.ofNullable(customer));
         when(cardsService.findByCustomerIdToCardsRepository(customer.getCustomerId())).thenReturn(cards);
@@ -186,7 +183,7 @@ class CustomersServiceImplTest {
 
         CustomerBalanceNotZeroException exception = Assertions.assertThrows(CustomerBalanceNotZeroException.class, () -> customersService
                 .closingCustomer(passportSeriesFoundCustomer, passportNumberFoundCustomer));
-        Assertions.assertEquals("Ошибка в удалении аккаунта! У клиента " + customer.getLastName() + " "
+        Assertions.assertEquals("Ошибка в закрытии аккаунта! У клиента " + customer.getLastName() + " "
                 + customer.getFirstName() + " " + customer.getPatronymic() + " на картах и/или счетах имеются денежные средства. " +
                 "Для корректного выполнения операции, Вам необходимо снять/перевести ВСЕ денежные средства со своих счетов и/или карт.",
                 exception.getMessage());
@@ -211,7 +208,7 @@ class CustomersServiceImplTest {
     }
 
     @Test
-    void shouldBeAnExceptionIfTheCustomerDuplicatesThePassportData() {
+    void shouldBeExceptionIfThePassportDataIsDuplicated() {
         when(customersRepository.findByPassportSeriesAndPassportNumber(customerToUpdate.getPassportSeries(), customerToUpdate.getPassportNumber()))
                 .thenReturn(Optional.ofNullable(customer));
         when(customersRepository.findPassportDuplicates(customerToUpdate.getPassportSeries(), customerToUpdate.getPassportNumber()))

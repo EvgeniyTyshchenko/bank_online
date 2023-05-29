@@ -69,7 +69,7 @@ class TransactionsServiceImplTest {
         transactionList.add(new Transaction(customer.getCustomerId(), "[registration]", "[registration]",
                 BigDecimal.valueOf(0), Currency.RUB, TransactionType.REGISTERCUSTOMER, LocalDateTime.now()));
         transactionList.add(new Transaction(customer.getCustomerId(),"[removal]", "[removal]",
-                BigDecimal.valueOf(0), Currency.RUB, TransactionType.DELETECUSTOMER, LocalDateTime.now()));
+                BigDecimal.valueOf(0), Currency.RUB, TransactionType.CLOSEDCUSTOMER, LocalDateTime.now()));
     }
 
     @Test
@@ -110,13 +110,13 @@ class TransactionsServiceImplTest {
     }
 
     @Test
-    void shouldBeCreatedAndSavedTransactionToDeleteCustomer() {
+    void shouldBeCreatedAndSavedTransactionToCloseCustomer() {
         Transaction transaction = new Transaction(customer.getCustomerId(), "[removal]", "[removal]",
-                BigDecimal.valueOf(0), Currency.RUB, TransactionType.DELETECUSTOMER, LocalDateTime.now());
+                BigDecimal.valueOf(0), Currency.RUB, TransactionType.CLOSEDCUSTOMER, LocalDateTime.now());
 
         when(transactionsRepository.findAllByCustomerId(customer.getCustomerId())).thenReturn(List.of(transaction));
 
-        transactionsService.transactionToDeleteCustomer(customer.getCustomerId());
+        transactionsService.transactionToCloseCustomer(customer.getCustomerId());
         List<Transaction> transactionReceivedFromTheDatabase = transactionsRepository.findAllByCustomerId(customer.getCustomerId());
 
         assertNotNull(transactionReceivedFromTheDatabase.get(0));
@@ -269,14 +269,14 @@ class TransactionsServiceImplTest {
     }
 
     @Test
-    void shouldBeCreatedAndSavedTransactionReplenishmentBalanceThroughTheBankCashDesk() {
+    void shouldBeCreatedAndSavedTransactionOfReceiptOfFundsToSavingsAccountThroughTheBankCashDesk() {
         Transaction transaction = new Transaction(customer.getCustomerId(), "[BANK]",
                 customer.getSavingsAccounts().get(0).getAccountNumber(), BigDecimal.valueOf(70_000), Currency.RUB,
                 TransactionType.INTRANSFER, LocalDateTime.now());
 
         when(transactionsRepository.findAllByCustomerId(customer.getCustomerId())).thenReturn(List.of(transaction));
 
-        transactionsService.transactionReplenishmentBalanceThroughTheBankCashDesk(customer, customer.getSavingsAccounts().get(0), BigDecimal.valueOf(70_000));
+        transactionsService.transactionOfReceiptOfFundsToSavingsAccountThroughTheBankCashDesk(customer, customer.getSavingsAccounts().get(0), BigDecimal.valueOf(70_000));
         List<Transaction> transactionReceivedFromTheDatabase = transactionsRepository.findAllByCustomerId(customer.getCustomerId());
 
         assertNotNull(transactionReceivedFromTheDatabase.get(0));
@@ -326,14 +326,14 @@ class TransactionsServiceImplTest {
     }
 
     @Test
-    void shouldBeCreatedAndSavedTransactionSendingFromAccountToAccount() {
+    void shouldBeCreatedAndSavedMoneyTransferTransactionFromSavingsAccountToSavingsAccount() {
         Transaction transaction = new Transaction(customer.getCustomerId(), customer.getSavingsAccounts().get(0).getAccountNumber(),
                 savingsAccountForTestingTransactions.getAccountNumber(), BigDecimal.valueOf(70_000), Currency.RUB,
                 TransactionType.OUTTRANSFER, LocalDateTime.now());
 
         when(transactionsRepository.findAllByCustomerId(customer.getCustomerId())).thenReturn(List.of(transaction));
 
-        transactionsService.transactionSendingFromAccountToAccount(customer, customer.getSavingsAccounts().get(0),
+        transactionsService.moneyTransferTransactionFromSavingsAccountToSavingsAccount(customer, customer.getSavingsAccounts().get(0),
                 savingsAccountForTestingTransactions, BigDecimal.valueOf(70_000));
         List<Transaction> transactionReceivedFromTheDatabase = transactionsRepository.findAllByCustomerId(customer.getCustomerId());
 
@@ -342,14 +342,14 @@ class TransactionsServiceImplTest {
     }
 
     @Test
-    void shouldBeCreatedAndSavedTransactionReceivingFromAccountToAccount() {
+    void shouldBeCreatedAndSavedTransactionOfReceiptOfFundsFromSavingsAccountToSavingsAccount() {
         Transaction transaction = new Transaction(customer.getCustomerId(), customer.getSavingsAccounts().get(0).getAccountNumber(),
                 savingsAccountForTestingTransactions.getAccountNumber(), BigDecimal.valueOf(70_000), Currency.RUB,
                 TransactionType.INTRANSFER, LocalDateTime.now());
 
         when(transactionsRepository.findAllByCustomerId(customer.getCustomerId())).thenReturn(List.of(transaction));
 
-        transactionsService.transactionReceivingFromAccountToAccount(customer, customer.getSavingsAccounts().get(0),
+        transactionsService.transactionOfReceiptOfFundsFromSavingsAccountToSavingsAccount(customer, customer.getSavingsAccounts().get(0),
                 savingsAccountForTestingTransactions, BigDecimal.valueOf(70_000));
         List<Transaction> transactionReceivedFromTheDatabase = transactionsRepository.findAllByCustomerId(customer.getCustomerId());
 
@@ -358,13 +358,13 @@ class TransactionsServiceImplTest {
     }
 
     @Test
-    void shouldBeCreatedAndSavedTransactionAccrualOfInterestOnTheDeposit() {
+    void shouldBeCreatedAndSavedTransactionAccrualOfInterestOnTheSavingsAccount() {
         Transaction transaction = new Transaction(customer.getCustomerId(), "[BANK]", customer.getSavingsAccounts().get(0).getAccountNumber(),
                 BigDecimal.valueOf(254.25), Currency.RUB, TransactionType.CAPITALIZATION, LocalDateTime.now());
 
         when(transactionsRepository.findAllByCustomerId(customer.getCustomerId())).thenReturn(List.of(transaction));
 
-        transactionsService.transactionAccrualOfInterestOnTheDeposit(customer.getCustomerId(), customer.getSavingsAccounts().get(0),
+        transactionsService.transactionAccrualOfInterestOnTheSavingsAccount(customer.getCustomerId(), customer.getSavingsAccounts().get(0),
                 BigDecimal.valueOf(254.25));
         List<Transaction> transactionReceivedFromTheDatabase = transactionsRepository.findAllByCustomerId(customer.getCustomerId());
 

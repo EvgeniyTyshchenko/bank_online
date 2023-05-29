@@ -14,6 +14,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/***
+ * Сервис DepositScheduler для автоматического зачисления процентов на сберегательные счета
+ */
 @Slf4j
 @Service
 public class DepositScheduler {
@@ -27,8 +30,11 @@ public class DepositScheduler {
         this.transactionsService = transactionsService;
     }
 
+    /***
+     * Реализует зачисления процентов по сберегательным счетам клиентов
+     */
     @Transactional
-    public void deposit() {
+    public void performInterestAccrualOnSavingsAccounts() {
         List<SavingsAccount> savingsAccounts = savingsAccountsService.findAllToSavingsAccountsRepository();
         LocalDate currentDate = LocalDate.now();
 
@@ -43,7 +49,7 @@ public class DepositScheduler {
                 account.setBalance(balance.add(amountAccruedInterest));
                 account.setUpdateDate(LocalDateTime.now());
                 savingsAccountsService.saveRepositorySavingsAccounts(account);
-                transactionsService.transactionAccrualOfInterestOnTheDeposit(account.getCustomerId(), account, amountAccruedInterest);
+                transactionsService.transactionAccrualOfInterestOnTheSavingsAccount(account.getCustomerId(), account, amountAccruedInterest);
                 log.info("На номер сберегательного счета {} произведено начисление процентов в размере {} RUB",
                         account.getAccountNumber(), amountAccruedInterest);
             }

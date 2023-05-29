@@ -6,6 +6,9 @@ import javax.mail.MessagingException;
 import java.math.BigDecimal;
 import java.util.List;
 
+/***
+ * Интерфейс CardsService предоставляет методы для работы с картами клиентов
+ */
 public interface CardsService {
 
     void openCardToTheCustomer(Integer passportSeries, Integer passportNumber) throws MessagingException;
@@ -26,7 +29,7 @@ public interface CardsService {
 
     Card getCardDetails(Integer passportSeries, Integer passportNumber, String cardNumber);
 
-    void saveCardsRepository(Card card);
+    void closeAllCardsInTheList(List<Card> cards);
 
     List<Card> findByCustomerIdToCardsRepository(Integer customerId);
 }

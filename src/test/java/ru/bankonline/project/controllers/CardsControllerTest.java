@@ -1,10 +1,6 @@
 package ru.bankonline.project.controllers;
-
 import org.junit.jupiter.api.BeforeAll;
-
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,7 +12,6 @@ import ru.bankonline.project.constants.Status;
 import ru.bankonline.project.entity.Card;
 import ru.bankonline.project.entity.Contact;
 import ru.bankonline.project.entity.Customer;
-import ru.bankonline.project.services.cardsservice.CardsService;
 import ru.bankonline.project.services.customersservice.CustomersService;
 
 import java.math.BigDecimal;
@@ -32,10 +27,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DirtiesContext(classMode = BEFORE_EACH_TEST_METHOD)
 class CardsControllerTest {
 
-    @Mock
-    private CardsService cardsService;
-    @Mock
-    private ModelMapper modelMapper;
     @Autowired
     private CustomersService customersService;
     @Autowired
@@ -64,7 +55,6 @@ class CardsControllerTest {
                 .andExpect(status().isOk());
     }
 
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     @Test
     void shouldDeleteTheCardFromTheCustomer() throws Exception {
         customersService.saveCustomersRepository(customer);
@@ -111,7 +101,6 @@ class CardsControllerTest {
 
     @Test
     void shouldGetCardDetails() throws Exception {
-        customer.getCards().get(0).setBalance(BigDecimal.ZERO);
         customersService.saveCustomersRepository(customer);
 
         mockMvc.perform(get("/cards/details/{series}/{number}/{cardNumber}",
