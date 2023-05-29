@@ -1,0 +1,3 @@
+databaseChangeLog:
+  - include:
+      file: liquibase/changeset/bank-online.sql
