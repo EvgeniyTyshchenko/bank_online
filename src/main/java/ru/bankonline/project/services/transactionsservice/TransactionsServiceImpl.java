@@ -27,9 +27,9 @@ public class TransactionsServiceImpl implements TransactionsService {
 
     private final TransactionsRepository transactionsRepository;
     private final CustomersService customersService;
-    private static final String closure = "[closure]";
-    private static final String discovery = "[discovery]";
-    private static final String bank = "[BANK]";
+    private static final String CLOSURE = "[closure]";
+    private static final String DISCOVERY = "[discovery]";
+    private static final String BANK = "[BANK]";
 
     @Autowired
     public TransactionsServiceImpl(TransactionsRepository transactionsRepository, CustomersService customersService) {
@@ -75,7 +75,7 @@ public class TransactionsServiceImpl implements TransactionsService {
      */
     @Override
     public void transactionToCloseCustomer(Integer customerId) {
-        Transaction transaction = new Transaction(customerId, closure, closure,
+        Transaction transaction = new Transaction(customerId, CLOSURE, CLOSURE,
                 BigDecimal.valueOf(0), Currency.RUB, TransactionType.CLOSEDCUSTOMER, LocalDateTime.now());
         transactionsRepository.save(transaction);
     }
@@ -114,7 +114,7 @@ public class TransactionsServiceImpl implements TransactionsService {
      */
     @Override
     public void transactionToCloseCard(Integer customerId) {
-        Transaction transaction = new Transaction(customerId, closure, closure,
+        Transaction transaction = new Transaction(customerId, CLOSURE, CLOSURE,
                 BigDecimal.valueOf(0), Currency.RUB, TransactionType.CLOSECARD, LocalDateTime.now());
         transactionsRepository.save(transaction);
     }
@@ -149,7 +149,7 @@ public class TransactionsServiceImpl implements TransactionsService {
      */
     @Override
     public void transactionToOpenCard(Customer customer) {
-        Transaction transaction = new Transaction(customer.getCustomerId(), discovery, discovery,
+        Transaction transaction = new Transaction(customer.getCustomerId(), DISCOVERY, DISCOVERY,
                 BigDecimal.valueOf(0), Currency.RUB, TransactionType.OPENCARD, LocalDateTime.now());
         transactionsRepository.save(transaction);
     }
@@ -214,7 +214,7 @@ public class TransactionsServiceImpl implements TransactionsService {
      */
     @Override
     public void transactionOfReceiptOfFundsToSavingsAccountThroughTheBankCashDesk(Customer customer, SavingsAccount savingsAccount, BigDecimal amount) {
-        Transaction transaction = new Transaction(customer.getCustomerId(), bank, savingsAccount.getAccountNumber(),
+        Transaction transaction = new Transaction(customer.getCustomerId(), BANK, savingsAccount.getAccountNumber(),
                 amount, savingsAccount.getCurrency(), TransactionType.INTRANSFER, LocalDateTime.now());
         transactionsRepository.save(transaction);
     }
@@ -225,7 +225,7 @@ public class TransactionsServiceImpl implements TransactionsService {
      */
     @Override
     public void transactionToCloseSavingsAccount(Integer customerId) {
-        Transaction transaction = new Transaction(customerId, closure, closure,
+        Transaction transaction = new Transaction(customerId, CLOSURE, CLOSURE,
                 BigDecimal.valueOf(0), Currency.RUB, TransactionType.CLOSEACCOUNT, LocalDateTime.now());
         transactionsRepository.save(transaction);
     }
@@ -237,7 +237,7 @@ public class TransactionsServiceImpl implements TransactionsService {
      */
     @Override
     public void transactionWithdrawalMoneyFromSavingsAccountThroughCashier(Customer customer, SavingsAccount savingsAccount) {
-        Transaction transaction = new Transaction(customer.getCustomerId(), bank, "[cash withdrawal]",
+        Transaction transaction = new Transaction(customer.getCustomerId(), BANK, "[cash withdrawal]",
                 savingsAccount.getBalance(), savingsAccount.getCurrency(), TransactionType.INTRANSFER, LocalDateTime.now());
         transactionsRepository.save(transaction);
     }
@@ -248,7 +248,7 @@ public class TransactionsServiceImpl implements TransactionsService {
      */
     @Override
     public void transactionToOpenSavingAccount(Customer customer) {
-        Transaction transaction = new Transaction(customer.getCustomerId(), discovery, discovery,
+        Transaction transaction = new Transaction(customer.getCustomerId(), DISCOVERY, DISCOVERY,
                 BigDecimal.valueOf(0), Currency.RUB, TransactionType.OPENACCOUNT, LocalDateTime.now());
         transactionsRepository.save(transaction);
     }
@@ -293,7 +293,7 @@ public class TransactionsServiceImpl implements TransactionsService {
      */
     @Override
     public void transactionAccrualOfInterestOnTheSavingsAccount(Integer customerId, SavingsAccount savingsAccount, BigDecimal transferAmount) {
-        Transaction transaction = new Transaction(customerId, bank, savingsAccount.getAccountNumber(),
+        Transaction transaction = new Transaction(customerId, BANK, savingsAccount.getAccountNumber(),
                 transferAmount, Currency.RUB, TransactionType.CAPITALIZATION, LocalDateTime.now());
         transactionsRepository.save(transaction);
     }
