@@ -2,8 +2,8 @@ package ru.bankonline.project.dto;
 
 import lombok.*;
 import org.modelmapper.ModelMapper;
-import ru.bankonline.project.entity.Card;
 import ru.bankonline.project.constants.Currency;
+import ru.bankonline.project.entity.Card;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -14,8 +14,8 @@ import java.util.List;
  */
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
+@Data
+@Builder
 @ToString
 public class CardDTO implements DTO {
 

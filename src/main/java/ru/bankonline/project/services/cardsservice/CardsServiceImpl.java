@@ -1,25 +1,29 @@
 package ru.bankonline.project.services.cardsservice;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.math3.random.RandomDataGenerator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.bankonline.project.constants.Currency;
+import ru.bankonline.project.constants.Status;
 import ru.bankonline.project.entity.Card;
 import ru.bankonline.project.entity.Customer;
 import ru.bankonline.project.entity.SavingsAccount;
-import ru.bankonline.project.constants.Currency;
-import ru.bankonline.project.constants.Status;
 import ru.bankonline.project.repositories.CardsRepository;
 import ru.bankonline.project.services.MailSender;
 import ru.bankonline.project.services.customersservice.CustomersService;
 import ru.bankonline.project.services.savingsaccountsservice.SavingsAccountsService;
 import ru.bankonline.project.services.transactionsservice.TransactionsService;
-import ru.bankonline.project.utils.exceptions.*;
+import ru.bankonline.project.utils.exceptions.ClosingCardException;
+import ru.bankonline.project.utils.exceptions.EnteringCardDataException;
+import ru.bankonline.project.utils.exceptions.ErrorMessages;
+import ru.bankonline.project.utils.exceptions.InsufficientFundsException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 /***
@@ -27,6 +31,7 @@ import java.util.UUID;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class CardsServiceImpl implements CardsService {
 
@@ -35,16 +40,6 @@ public class CardsServiceImpl implements CardsService {
     private final TransactionsService transactionsService;
     private final SavingsAccountsService savingsAccountsService;
     private final MailSender mailSender;
-
-    @Autowired
-    public CardsServiceImpl(CardsRepository cardsRepository, CustomersService customersService,
-                            TransactionsService transactionsService, SavingsAccountsService savingsAccountsService, MailSender mailSender) {
-        this.cardsRepository = cardsRepository;
-        this.customersService = customersService;
-        this.transactionsService = transactionsService;
-        this.savingsAccountsService = savingsAccountsService;
-        this.mailSender = mailSender;
-    }
 
     /***
      * Открывает новую карту и отправляет письмо на электронную почту клиенту банка
@@ -282,8 +277,11 @@ public class CardsServiceImpl implements CardsService {
         for (Card card : cards) {
             card.setStatus(Status.CLOSED);
             card.setUpdateDate(LocalDateTime.now());
-            cardsRepository.save(card);
         }
+        /*
+         * Один запрос к БД с большим количеством данных лучше чем много запросов с маленькими данными
+         */
+        cardsRepository.saveAll(cards);
     }
 
     /***
@@ -344,9 +342,16 @@ public class CardsServiceImpl implements CardsService {
      * @throws ClosingCardException исключение, которое может быть вызвано при закрытии карты (когда на карте остаются денежные средства)
      */
     private void checkCardBalanceForClosing(Card card) {
-        if (card.getBalance().compareTo(BigDecimal.ZERO) != 0) {
-            throw new ClosingCardException("Ошибка в закрытии карты! Пожалуйста, убедитесь, что баланс равен 0. " +
-                    "Вы можете сделать заявку на снятие денег в кассе, снять деньги в банкомате или же перевести оставшуюся сумму на другой счет.");
+        /*
+         * Objects.equals сравнивает два объекта
+         * Отсутствует вероятность выброса NullPointerException в случае, если один из сравниваемых объектов будет null
+         */
+        if(!Objects.equals(BigDecimal.ZERO, card.getBalance())){
+            /*
+             * Текстовые константы лучше хранить в одном месте и ссылаться на них
+             * Таким образом не придется менять один текст много раз в коде
+             */
+            throw new ClosingCardException(ErrorMessages.CLOSED_CARD_BALANCE_IS_NOT_ZERO);
         }
     }
 

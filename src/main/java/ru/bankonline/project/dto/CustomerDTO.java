@@ -1,9 +1,12 @@
 package ru.bankonline.project.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.modelmapper.ModelMapper;
-import ru.bankonline.project.entity.Customer;
 import ru.bankonline.project.constants.Status;
+import ru.bankonline.project.entity.Customer;
 
 import java.util.List;
 
@@ -12,8 +15,8 @@ import java.util.List;
  */
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
+@Data
+@Builder
 public class CustomerDTO implements DTO {
 
     private Integer passportSeries;
@@ -88,10 +91,19 @@ public class CustomerDTO implements DTO {
      * @return объект CustomerDTO с заполненными полями из Customer, Address и Contact
      */
     public static CustomerDTO convertToDTOCustomerWithAddressAndContacts(Customer customer, ModelMapper modelMapper) {
-        return new CustomerDTO(customer.getPassportSeries(), customer.getPassportNumber(),
-                customer.getLastName(), customer.getFirstName(), customer.getPatronymic(),
-                customer.getBirthday(), AddressDTO.convertToAddressDTO(customer.getAddress(), modelMapper),
-                ContactDTO.convertToContactDTO(customer.getContactDetails(), modelMapper));
+        /*
+         * Пример использования Builder
+         */
+        return CustomerDTO.builder()
+                .passportSeries(customer.getPassportSeries())
+                .passportNumber(customer.getPassportNumber())
+                .lastName(customer.getLastName())
+                .firstName(customer.getFirstName())
+                .patronymic(customer.getPatronymic())
+                .birthday(customer.getBirthday())
+                .addressDTO(AddressDTO.convertToAddressDTO(customer.getAddress(), modelMapper))
+                .contactDTO(ContactDTO.convertToContactDTO(customer.getContactDetails(), modelMapper))
+                .build();
     }
 
     @Override
