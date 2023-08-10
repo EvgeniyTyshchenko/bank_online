@@ -1,6 +1,8 @@
 package ru.bankonline.project.entity;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import ru.bankonline.project.constants.Currency;
 import ru.bankonline.project.constants.Status;
@@ -14,10 +16,7 @@ import java.time.LocalDateTime;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
-@Setter
-@EqualsAndHashCode
-@ToString
+@Data
 @Entity
 @Table(name = "cards")
 public class Card {

@@ -4,13 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.validation.Validator;
 import ru.bankonline.project.dto.DTO;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.stream.Collectors;
 
 /***
  * Класс для формирования ответа об ошибке
@@ -60,10 +59,15 @@ public class ErrorResponse {
      * @return сообщение об ошибке
      */
     public static String getErrorMessage(BindingResult bindingResult) {
-        List<String> errorMessages = new ArrayList<>();
-        for (FieldError error : bindingResult.getFieldErrors()) {
-            errorMessages.add(error.getDefaultMessage());
-        }
-        return String.join("; ", errorMessages);
+        /*
+         * Пример использования StreamApi
+         */
+        return bindingResult.getFieldErrors()
+                .stream()
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .collect(
+                        Collectors.joining(
+                                "; "
+                        ));
     }
 }
